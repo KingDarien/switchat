@@ -6,6 +6,7 @@ import PopularityRanking from '@/components/PopularityRanking';
 import GrowthTips from '@/components/GrowthTips';
 import UserGoals from '@/components/UserGoals';
 import EventsDiscovery from '@/components/EventsDiscovery';
+import GoalsDiscovery from '@/components/GoalsDiscovery';
 import Navbar from '@/components/Navbar';
 import { TrendingUp, Target, Calendar, Users, Lightbulb, Trophy } from 'lucide-react';
 
@@ -21,8 +22,12 @@ const Explore = () => {
           </p>
         </div>
         
-        <Tabs defaultValue="events" className="space-y-6">
+        <Tabs defaultValue="goals" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="goals" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Discover Goals
+            </TabsTrigger>
             <TabsTrigger value="events" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               Events
@@ -35,15 +40,15 @@ const Explore = () => {
               <Trophy className="h-4 w-4" />
               Rankings
             </TabsTrigger>
-            <TabsTrigger value="goals" className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
-              Goals
-            </TabsTrigger>
             <TabsTrigger value="tips" className="flex items-center gap-2">
               <Lightbulb className="h-4 w-4" />
               Tips
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="goals" className="space-y-6">
+            <GoalsDiscovery />
+          </TabsContent>
 
           <TabsContent value="events" className="space-y-6">
             <EventsDiscovery />
@@ -55,10 +60,6 @@ const Explore = () => {
 
           <TabsContent value="ranking" className="space-y-6">
             <PopularityRanking />
-          </TabsContent>
-
-          <TabsContent value="goals" className="space-y-6">
-            <UserGoals />
           </TabsContent>
 
           <TabsContent value="tips" className="space-y-6">

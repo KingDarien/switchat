@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Camera, Briefcase, MapPin, Globe } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import UserGoals from '@/components/UserGoals';
 
 interface Profile {
   username: string;
@@ -290,6 +291,16 @@ const Profile = () => {
               <Label>Email</Label>
               <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Goals Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>My Goals</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <UserGoals />
           </CardContent>
         </Card>
       </div>
