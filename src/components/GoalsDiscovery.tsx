@@ -41,7 +41,7 @@ interface Goal {
   goal_contributions?: Array<{ count: number }>;
 }
 
-const GoalsDiscovery: React.FC = () => {
+export default function GoalsDiscovery() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -226,6 +226,4 @@ const GoalsDiscovery: React.FC = () => {
       )}
     </div>
   );
-};
-
-export default GoalsDiscovery;
+}
