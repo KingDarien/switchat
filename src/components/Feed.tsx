@@ -69,6 +69,30 @@ const Feed = () => {
     }
   };
 
+  const fetchNews = async () => {
+    // Mock news data for demonstration
+    const mockNews = [
+      {
+        title: `${newsLocation === 'local' ? 'Local' : newsLocation === 'city' ? 'City' : 'State'} Community Center Opens New Programs`,
+        description: `New educational and wellness programs launched to serve the ${newsLocation} community with expanded services and facilities.`,
+        url: '#',
+        urlToImage: '/placeholder.svg',
+        publishedAt: new Date().toISOString(),
+        source: { name: `${newsLocation.charAt(0).toUpperCase() + newsLocation.slice(1)} News` },
+        location: newsLocation === 'local' ? 'Downtown Area' : newsLocation === 'city' ? 'City Center' : 'State Capital'
+      },
+      {
+        title: `Weather Alert: ${newsLocation === 'state' ? 'Statewide' : 'Local'} Conditions Update`,
+        description: `Current weather conditions and forecast for the ${newsLocation} area with important safety information.`,
+        url: '#',
+        publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        source: { name: 'Weather Service' },
+        location: newsLocation === 'local' ? 'Your Area' : newsLocation === 'city' ? 'Metro Area' : 'State Region'
+      }
+    ];
+    setNewsArticles(mockNews);
+  };
+
   useEffect(() => {
     fetchPosts();
 
@@ -104,6 +128,12 @@ const Feed = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (feedType === 'news') {
+      fetchNews();
+    }
+  }, [feedType, newsLocation]);
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -118,36 +148,6 @@ const Feed = () => {
       </div>
     );
   }
-
-  const fetchNews = async () => {
-    // Mock news data for demonstration
-    const mockNews = [
-      {
-        title: `${newsLocation === 'local' ? 'Local' : newsLocation === 'city' ? 'City' : 'State'} Community Center Opens New Programs`,
-        description: `New educational and wellness programs launched to serve the ${newsLocation} community with expanded services and facilities.`,
-        url: '#',
-        urlToImage: '/placeholder.svg',
-        publishedAt: new Date().toISOString(),
-        source: { name: `${newsLocation.charAt(0).toUpperCase() + newsLocation.slice(1)} News` },
-        location: newsLocation === 'local' ? 'Downtown Area' : newsLocation === 'city' ? 'City Center' : 'State Capital'
-      },
-      {
-        title: `Weather Alert: ${newsLocation === 'state' ? 'Statewide' : 'Local'} Conditions Update`,
-        description: `Current weather conditions and forecast for the ${newsLocation} area with important safety information.`,
-        url: '#',
-        publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        source: { name: 'Weather Service' },
-        location: newsLocation === 'local' ? 'Your Area' : newsLocation === 'city' ? 'Metro Area' : 'State Region'
-      }
-    ];
-    setNewsArticles(mockNews);
-  };
-
-  useEffect(() => {
-    if (feedType === 'news') {
-      fetchNews();
-    }
-  }, [feedType, newsLocation]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
