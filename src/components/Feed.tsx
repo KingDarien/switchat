@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import PostCard from './PostCard';
 import CreatePost from './CreatePost';
+import UserSearch from './UserSearch';
 
 interface Profile {
   username: string;
@@ -111,23 +112,29 @@ const Feed = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <CreatePost onPostCreated={fetchPosts} />
+    <div className="grid gap-6 lg:grid-cols-3">
+      <div className="lg:col-span-2 space-y-6">
+        <CreatePost onPostCreated={fetchPosts} />
+        
+        <div className="space-y-4">
+          {posts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No posts yet. Be the first to share something!</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onLikeToggle={fetchPosts}
+              />
+            ))
+          )}
+        </div>
+      </div>
       
-      <div className="space-y-4">
-        {posts.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No posts yet. Be the first to share something!</p>
-          </div>
-        ) : (
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onLikeToggle={fetchPosts}
-            />
-          ))
-        )}
+      <div className="hidden lg:block">
+        <UserSearch />
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Home, User, LogOut, Heart, MessageCircle } from 'lucide-react';
+import { Home, User, LogOut, Heart, MessageCircle, Search } from 'lucide-react';
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
@@ -53,6 +53,17 @@ const Navbar = () => {
               >
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Profile</span>
+              </Button>
+            </Link>
+            
+            <Link to="/explore">
+              <Button
+                variant={isActive('/explore') ? 'default' : 'ghost'}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Search className="h-4 w-4" />
+                <span className="hidden sm:inline">Explore</span>
               </Button>
             </Link>
             

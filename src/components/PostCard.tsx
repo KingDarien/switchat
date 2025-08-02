@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Heart, MessageCircle, Share } from 'lucide-react';
+import Comments from './Comments';
 
 interface Profile {
   username: string;
@@ -170,14 +171,15 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
           </Button>
           
           <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground">
-            <MessageCircle className="h-4 w-4" />
-            <span>{commentsCount}</span>
-          </Button>
-          
-          <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground">
             <Share className="h-4 w-4" />
           </Button>
         </div>
+        
+        <Comments 
+          postId={post.id} 
+          commentsCount={commentsCount}
+          onCommentsCountChange={setCommentsCount}
+        />
       </CardContent>
     </Card>
   );
