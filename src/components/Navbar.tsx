@@ -27,14 +27,14 @@ const Navbar = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg">
-      <div className="max-w-4xl mx-auto px-4 py-2">
+      <div className="w-full px-2 py-2">
         <div className="flex items-center justify-center w-full">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 justify-between w-full max-w-md">
             <Link to="/">
               <Button
                 variant={isActive('/') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-2 px-3"
+                className="flex flex-col items-center gap-1 h-auto py-1 px-2"
               >
                 <Home className="h-4 w-4" />
                 <span className="text-xs">Home</span>
@@ -45,7 +45,7 @@ const Navbar = () => {
               <Button
                 variant={isActive('/profile') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-2 px-3"
+                className="flex flex-col items-center gap-1 h-auto py-1 px-2"
               >
                 <User className="h-4 w-4" />
                 <span className="text-xs">Profile</span>
@@ -56,7 +56,7 @@ const Navbar = () => {
               <Button
                 variant={isActive('/explore') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-2 px-3"
+                className="flex flex-col items-center gap-1 h-auto py-1 px-2"
               >
                 <Search className="h-4 w-4" />
                 <span className="text-xs">Explore</span>
@@ -67,7 +67,7 @@ const Navbar = () => {
               <Button
                 variant={isActive('/notifications') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-2 px-3"
+                className="flex flex-col items-center gap-1 h-auto py-1 px-2"
               >
                 <Heart className="h-4 w-4" />
                 <span className="text-xs">Notifications</span>
@@ -78,7 +78,7 @@ const Navbar = () => {
               <Button
                 variant={isActive('/messages') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-2 px-3"
+                className="flex flex-col items-center gap-1 h-auto py-1 px-2"
               >
                 <MessageCircle className="h-4 w-4" />
                 <span className="text-xs">Messages</span>
@@ -87,7 +87,7 @@ const Navbar = () => {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-auto py-2 px-3 flex flex-col items-center gap-1">
+                <Button variant="ghost" className="relative h-auto py-1 px-2 flex flex-col items-center gap-1">
                   <Avatar className="h-4 w-4">
                     <AvatarImage src="" />
                     <AvatarFallback className="text-xs">
