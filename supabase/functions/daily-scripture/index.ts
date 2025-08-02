@@ -17,6 +17,15 @@ serve(async (req) => {
   try {
     console.log('Starting daily scripture posting...');
 
+    // Check if today is Saturday (day 6) - no posts on Saturdays
+    const currentDate = new Date();
+    if (currentDate.getDay() === 6) {
+      console.log('Saturday - no scripture posting today');
+      return new Response(JSON.stringify({ message: 'No posting on Saturdays' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
