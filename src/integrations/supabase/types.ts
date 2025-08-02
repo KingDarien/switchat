@@ -49,6 +49,104 @@ export type Database = {
           },
         ]
       }
+      event_attendees: {
+        Row: {
+          event_id: string
+          id: string
+          registered_at: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          registered_at?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          registered_at?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          address: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          end_date: string | null
+          event_type: string
+          id: string
+          image_url: string | null
+          is_free: boolean | null
+          is_published: boolean | null
+          latitude: number | null
+          location_name: string | null
+          longitude: number | null
+          max_attendees: number | null
+          price: number | null
+          start_date: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          end_date?: string | null
+          event_type: string
+          id?: string
+          image_url?: string | null
+          is_free?: boolean | null
+          is_published?: boolean | null
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
+          max_attendees?: number | null
+          price?: number | null
+          start_date: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          end_date?: string | null
+          event_type?: string
+          id?: string
+          image_url?: string | null
+          is_free?: boolean | null
+          is_published?: boolean | null
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
+          max_attendees?: number | null
+          price?: number | null
+          start_date?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -69,6 +167,50 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      growth_tips: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean | null
+          max_followers: number | null
+          min_followers: number | null
+          niche_id: string
+          tip_type: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean | null
+          max_followers?: number | null
+          min_followers?: number | null
+          niche_id: string
+          tip_type?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          max_followers?: number | null
+          min_followers?: number | null
+          niche_id?: string
+          tip_type?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "growth_tips_niche_id_fkey"
+            columns: ["niche_id"]
+            isOneToOne: false
+            referencedRelation: "niches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       likes: {
         Row: {
@@ -98,6 +240,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      niches: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       posts: {
         Row: {
@@ -131,33 +297,139 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          current_rank: number | null
           display_name: string | null
           id: string
+          location: string | null
+          niche_id: string | null
+          popularity_score: number | null
+          social_links: Json | null
           updated_at: string
           user_id: string
           username: string | null
+          website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          current_rank?: number | null
           display_name?: string | null
           id?: string
+          location?: string | null
+          niche_id?: string | null
+          popularity_score?: number | null
+          social_links?: Json | null
           updated_at?: string
           user_id: string
           username?: string | null
+          website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          current_rank?: number | null
           display_name?: string | null
           id?: string
+          location?: string | null
+          niche_id?: string | null
+          popularity_score?: number | null
+          social_links?: Json | null
           updated_at?: string
           user_id?: string
           username?: string | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_niche_id_fkey"
+            columns: ["niche_id"]
+            isOneToOne: false
+            referencedRelation: "niches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_goals: {
+        Row: {
+          created_at: string
+          current_value: number | null
+          description: string | null
+          goal_type: string
+          id: string
+          is_active: boolean | null
+          is_completed: boolean | null
+          target_date: string | null
+          target_value: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number | null
+          description?: string | null
+          goal_type: string
+          id?: string
+          is_active?: boolean | null
+          is_completed?: boolean | null
+          target_date?: string | null
+          target_value?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number | null
+          description?: string | null
+          goal_type?: string
+          id?: string
+          is_active?: boolean | null
+          is_completed?: boolean | null
+          target_date?: string | null
+          target_value?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
+      }
+      user_rankings: {
+        Row: {
+          calculated_at: string
+          id: string
+          niche_id: string | null
+          popularity_score: number
+          rank_position: number | null
+          user_id: string
+        }
+        Insert: {
+          calculated_at?: string
+          id?: string
+          niche_id?: string | null
+          popularity_score?: number
+          rank_position?: number | null
+          user_id: string
+        }
+        Update: {
+          calculated_at?: string
+          id?: string
+          niche_id?: string | null
+          popularity_score?: number
+          rank_position?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_rankings_niche_id_fkey"
+            columns: ["niche_id"]
+            isOneToOne: false
+            referencedRelation: "niches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Camera } from 'lucide-react';
+import { Camera, Briefcase, MapPin, Globe } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 
 interface Profile {
@@ -16,6 +18,17 @@ interface Profile {
   display_name: string;
   bio: string;
   avatar_url: string;
+  niche_id: string;
+  location: string;
+  website_url: string;
+  social_links: Record<string, string>;
+}
+
+interface Niche {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
 }
 
 const Profile = () => {
@@ -24,7 +37,12 @@ const Profile = () => {
     display_name: '',
     bio: '',
     avatar_url: '',
+    niche_id: '',
+    location: '',
+    website_url: '',
+    social_links: {},
   });
+  const [niches, setNiches] = useState<Niche[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { user } = useAuth();
@@ -33,8 +51,18 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchNiches();
     }
   }, [user]);
+
+  const fetchNiches = async () => {
+    try {
+      const { data } = await supabase.from('niches').select('*').order('name');
+      setNiches(data || []);
+    } catch (error) {
+      console.error('Error fetching niches:', error);
+    }
+  };
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -55,6 +83,10 @@ const Profile = () => {
           display_name: data.display_name || '',
           bio: data.bio || '',
           avatar_url: data.avatar_url || '',
+          niche_id: data.niche_id || '',
+          location: data.location || '',
+          website_url: data.website_url || '',
+          social_links: (data.social_links as Record<string, string>) || {},
         });
       }
     } catch (error: any) {
@@ -79,6 +111,10 @@ const Profile = () => {
           display_name: profile.display_name,
           bio: profile.bio,
           avatar_url: profile.avatar_url,
+          niche_id: profile.niche_id || null,
+          location: profile.location,
+          website_url: profile.website_url,
+          social_links: profile.social_links,
         });
 
       if (error) {
@@ -196,6 +232,46 @@ const Profile = () => {
                   onChange={(e) => handleInputChange('bio', e.target.value)}
                   className="min-h-[100px]"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="niche">Your Niche</Label>
+                <Select value={profile.niche_id} onValueChange={(value) => handleInputChange('niche_id', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your niche" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {niches.map((niche) => (
+                      <SelectItem key={niche.id} value={niche.id}>
+                        <span className="flex items-center gap-2">
+                          <span>{niche.icon}</span>
+                          {niche.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    placeholder="City, Country"
+                    value={profile.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    placeholder="https://yourwebsite.com"
+                    value={profile.website_url}
+                    onChange={(e) => handleInputChange('website_url', e.target.value)}
+                  />
+                </div>
               </div>
             </div>
             
