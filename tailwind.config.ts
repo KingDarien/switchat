@@ -52,6 +52,24 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				brand: {
+					primary: 'hsl(var(--brand-primary))',
+					gradient: 'var(--brand-gradient)'
+				},
+				success: 'hsl(var(--success))',
+				warning: 'hsl(var(--warning))',
+				info: 'hsl(var(--info))',
+				verification: {
+					diamond: 'hsl(var(--diamond))',
+					gold: 'hsl(var(--gold))',
+					silver: 'hsl(var(--silver))',
+					bronze: 'hsl(var(--bronze))'
+				},
+				news: {
+					local: 'hsl(var(--local-news))',
+					state: 'hsl(var(--state-news))',
+					city: 'hsl(var(--city-news))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
