@@ -49,6 +49,38 @@ export type Database = {
           },
         ]
       }
+      daily_scriptures: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_date: string
+          post_id: string | null
+          scripture_reference: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_date: string
+          post_id?: string | null
+          scripture_reference?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_date?: string
+          post_id?: string | null
+          scripture_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_scriptures_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_attendees: {
         Row: {
           event_id: string
