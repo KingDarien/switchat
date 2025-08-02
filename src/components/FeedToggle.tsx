@@ -2,30 +2,24 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ChevronDown, MapPin, Building2, Globe } from 'lucide-react';
+import LocationPicker, { LocationData } from './LocationPicker';
 
 export type FeedType = 'social' | 'following' | 'news';
-export type NewsLocation = 'local' | 'city' | 'state';
 
 interface FeedToggleProps {
   feedType: FeedType;
-  newsLocation: NewsLocation;
+  selectedLocation: LocationData;
   onFeedTypeChange: (type: FeedType) => void;
-  onNewsLocationChange: (location: NewsLocation) => void;
+  onLocationChange: (location: LocationData) => void;
 }
 
-const FeedToggle = ({ feedType, newsLocation, onFeedTypeChange, onNewsLocationChange }: FeedToggleProps) => {
+const FeedToggle = ({ feedType, selectedLocation, onFeedTypeChange, onLocationChange }: FeedToggleProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const feedOptions = [
     { value: 'social' as FeedType, label: 'All Posts', icon: Globe },
     { value: 'following' as FeedType, label: 'Following', icon: Building2 },
     { value: 'news' as FeedType, label: 'Local News', icon: MapPin }
-  ];
-
-  const newsLocationOptions = [
-    { value: 'local' as NewsLocation, label: 'Local Area', color: 'news-local' },
-    { value: 'city' as NewsLocation, label: 'City', color: 'news-city' },
-    { value: 'state' as NewsLocation, label: 'State', color: 'news-state' }
   ];
 
   const getCurrentIcon = () => {
@@ -36,8 +30,10 @@ const FeedToggle = ({ feedType, newsLocation, onFeedTypeChange, onNewsLocationCh
   const getCurrentLabel = () => {
     const option = feedOptions.find(opt => opt.value === feedType);
     if (feedType === 'news') {
-      const locationOption = newsLocationOptions.find(opt => opt.value === newsLocation);
-      return `${option?.label} - ${locationOption?.label}`;
+      const locationName = selectedLocation.type === 'city' 
+        ? `${selectedLocation.name}, ${selectedLocation.state}` 
+        : selectedLocation.name;
+      return `${option?.label} - ${locationName}`;
     }
     return option?.label || 'All Posts';
   };
@@ -80,21 +76,10 @@ const FeedToggle = ({ feedType, newsLocation, onFeedTypeChange, onNewsLocationCh
         <div className="flex items-center gap-2 animate-fade-in">
           <div className="h-6 border-l-2 border-primary/30"></div>
           <span className="text-sm text-muted-foreground font-medium">Location:</span>
-          {newsLocationOptions.map((option) => (
-            <Button
-              key={option.value}
-              variant={newsLocation === option.value ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onNewsLocationChange(option.value)}
-              className={`transition-all duration-300 hover-scale ${
-                newsLocation === option.value 
-                  ? `bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md hover:shadow-lg` 
-                  : `hover:bg-primary/10 hover:text-primary border-primary/20 hover:border-primary/40`
-              }`}
-            >
-              {option.label}
-            </Button>
-          ))}
+          <LocationPicker 
+            selectedLocation={selectedLocation}
+            onLocationChange={onLocationChange}
+          />
         </div>
       )}
     </div>

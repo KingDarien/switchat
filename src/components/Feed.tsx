@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import PostCard from './PostCard';
 import CreatePost from './CreatePost';
 import UserSearch from './UserSearch';
-import FeedToggle, { FeedType, NewsLocation } from './FeedToggle';
+import FeedToggle, { FeedType } from './FeedToggle';
+import { LocationData } from './LocationPicker';
 import NewsCard from './NewsCard';
 import PullToRefresh from './PullToRefresh';
 
@@ -29,7 +30,7 @@ const Feed = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedType, setFeedType] = useState<FeedType>('social');
-  const [newsLocation, setNewsLocation] = useState<NewsLocation>('local');
+  const [selectedLocation, setSelectedLocation] = useState<LocationData>({ type: 'city', name: 'New York', state: 'New York' });
   const [newsArticles, setNewsArticles] = useState<any[]>([]);
   const [followingUserIds, setFollowingUserIds] = useState<string[]>([]);
 
@@ -100,7 +101,7 @@ const Feed = () => {
     try {
       // Call our news API edge function
       const { data, error } = await supabase.functions.invoke('fetch-news', {
-        body: { location: newsLocation }
+        body: { location: selectedLocation }
       });
 
       if (error) {
@@ -117,25 +118,31 @@ const Feed = () => {
     }
   };
 
-  const getMockNews = () => [
-    {
-      title: `${newsLocation === 'local' ? 'Local' : newsLocation === 'city' ? 'City' : 'State'} Community Center Opens New Programs`,
-      description: `New educational and wellness programs launched to serve the ${newsLocation} community with expanded services and facilities.`,
-      url: '#',
-      urlToImage: '/placeholder.svg',
-      publishedAt: new Date().toISOString(),
-      source: { name: `${newsLocation.charAt(0).toUpperCase() + newsLocation.slice(1)} News` },
-      location: newsLocation === 'local' ? 'Downtown Area' : newsLocation === 'city' ? 'City Center' : 'State Capital'
-    },
-    {
-      title: `Weather Alert: ${newsLocation === 'state' ? 'Statewide' : 'Local'} Conditions Update`,
-      description: `Current weather conditions and forecast for the ${newsLocation} area with important safety information.`,
-      url: '#',
-      publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      source: { name: 'Weather Service' },
-      location: newsLocation === 'local' ? 'Your Area' : newsLocation === 'city' ? 'Metro Area' : 'State Region'
-    }
-  ];
+  const getMockNews = () => {
+    const locationName = selectedLocation.type === 'city' 
+      ? selectedLocation.name 
+      : selectedLocation.name;
+    
+    return [
+      {
+        title: `${locationName} Community Center Opens New Programs`,
+        description: `New educational and wellness programs launched to serve the ${locationName} community with expanded services and facilities.`,
+        url: '#',
+        urlToImage: '/placeholder.svg',
+        publishedAt: new Date().toISOString(),
+        source: { name: `${locationName} Tribune` },
+        location: selectedLocation.type === 'city' ? `${selectedLocation.name}, ${selectedLocation.state}` : selectedLocation.name
+      },
+      {
+        title: `Weather Alert: ${locationName} Area Conditions Update`,
+        description: `Current weather conditions and forecast for the ${locationName} area with important safety information.`,
+        url: '#',
+        publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        source: { name: 'Weather Service' },
+        location: selectedLocation.type === 'city' ? `${selectedLocation.name}, ${selectedLocation.state}` : selectedLocation.name
+      }
+    ];
+  };
 
   useEffect(() => {
     fetchFollowingUsers();
@@ -184,7 +191,7 @@ const Feed = () => {
     if (feedType === 'news') {
       fetchNews();
     }
-  }, [feedType, newsLocation]);
+  }, [feedType, selectedLocation]);
 
   if (loading) {
     return (
@@ -217,9 +224,9 @@ const Feed = () => {
       <div className="lg:col-span-2 space-y-6">
         <FeedToggle 
           feedType={feedType}
-          newsLocation={newsLocation}
+          selectedLocation={selectedLocation}
           onFeedTypeChange={setFeedType}
-          onNewsLocationChange={setNewsLocation}
+          onLocationChange={setSelectedLocation}
         />
         
         {feedType !== 'news' && <CreatePost onPostCreated={fetchPosts} />}
@@ -235,7 +242,7 @@ const Feed = () => {
                 <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                   <NewsCard
                     article={article}
-                    locationType={newsLocation}
+                    locationType={selectedLocation.type}
                   />
                 </div>
               ))
