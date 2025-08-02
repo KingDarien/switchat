@@ -300,6 +300,7 @@ export type Database = {
           current_rank: number | null
           display_name: string | null
           id: string
+          is_verified: boolean | null
           location: string | null
           niche_id: string | null
           popularity_score: number | null
@@ -307,6 +308,7 @@ export type Database = {
           updated_at: string
           user_id: string
           username: string | null
+          verification_tier: string | null
           website_url: string | null
         }
         Insert: {
@@ -316,6 +318,7 @@ export type Database = {
           current_rank?: number | null
           display_name?: string | null
           id?: string
+          is_verified?: boolean | null
           location?: string | null
           niche_id?: string | null
           popularity_score?: number | null
@@ -323,6 +326,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           username?: string | null
+          verification_tier?: string | null
           website_url?: string | null
         }
         Update: {
@@ -332,6 +336,7 @@ export type Database = {
           current_rank?: number | null
           display_name?: string | null
           id?: string
+          is_verified?: boolean | null
           location?: string | null
           niche_id?: string | null
           popularity_score?: number | null
@@ -339,6 +344,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string | null
+          verification_tier?: string | null
           website_url?: string | null
         }
         Relationships: [
@@ -436,7 +442,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_popularity_score: {
+        Args: { user_id_param: string }
+        Returns: number
+      }
+      update_user_rankings: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
