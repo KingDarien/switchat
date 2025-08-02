@@ -5,6 +5,7 @@ import CreatePost from './CreatePost';
 import UserSearch from './UserSearch';
 import FeedToggle, { FeedType, NewsLocation } from './FeedToggle';
 import NewsCard from './NewsCard';
+import PullToRefresh from './PullToRefresh';
 
 interface Profile {
   username: string;
@@ -30,14 +31,40 @@ const Feed = () => {
   const [feedType, setFeedType] = useState<FeedType>('social');
   const [newsLocation, setNewsLocation] = useState<NewsLocation>('local');
   const [newsArticles, setNewsArticles] = useState<any[]>([]);
+  const [followingUserIds, setFollowingUserIds] = useState<string[]>([]);
+
+  const fetchFollowingUsers = async () => {
+    try {
+      const { data: follows, error } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', (await supabase.auth.getUser()).data.user?.id);
+
+      if (error) {
+        console.error('Error fetching following users:', error);
+        return;
+      }
+
+      setFollowingUserIds(follows?.map(f => f.following_id) || []);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
       // First fetch posts
-      const { data: postsData, error: postsError } = await supabase
+      let query = supabase
         .from('posts')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Filter by following users if in following mode
+      if (feedType === 'following' && followingUserIds.length > 0) {
+        query = query.in('user_id', followingUserIds);
+      }
+
+      const { data: postsData, error: postsError } = await query;
 
       if (postsError) {
         console.error('Error fetching posts:', postsError);
@@ -70,30 +97,48 @@ const Feed = () => {
   };
 
   const fetchNews = async () => {
-    // Mock news data for demonstration
-    const mockNews = [
-      {
-        title: `${newsLocation === 'local' ? 'Local' : newsLocation === 'city' ? 'City' : 'State'} Community Center Opens New Programs`,
-        description: `New educational and wellness programs launched to serve the ${newsLocation} community with expanded services and facilities.`,
-        url: '#',
-        urlToImage: '/placeholder.svg',
-        publishedAt: new Date().toISOString(),
-        source: { name: `${newsLocation.charAt(0).toUpperCase() + newsLocation.slice(1)} News` },
-        location: newsLocation === 'local' ? 'Downtown Area' : newsLocation === 'city' ? 'City Center' : 'State Capital'
-      },
-      {
-        title: `Weather Alert: ${newsLocation === 'state' ? 'Statewide' : 'Local'} Conditions Update`,
-        description: `Current weather conditions and forecast for the ${newsLocation} area with important safety information.`,
-        url: '#',
-        publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        source: { name: 'Weather Service' },
-        location: newsLocation === 'local' ? 'Your Area' : newsLocation === 'city' ? 'Metro Area' : 'State Region'
+    try {
+      // Call our news API edge function
+      const { data, error } = await supabase.functions.invoke('fetch-news', {
+        body: { location: newsLocation }
+      });
+
+      if (error) {
+        console.error('Error fetching news:', error);
+        // Fallback to mock data
+        setNewsArticles(getMockNews());
+        return;
       }
-    ];
-    setNewsArticles(mockNews);
+
+      setNewsArticles(data?.articles || getMockNews());
+    } catch (error) {
+      console.error('Error:', error);
+      setNewsArticles(getMockNews());
+    }
   };
 
+  const getMockNews = () => [
+    {
+      title: `${newsLocation === 'local' ? 'Local' : newsLocation === 'city' ? 'City' : 'State'} Community Center Opens New Programs`,
+      description: `New educational and wellness programs launched to serve the ${newsLocation} community with expanded services and facilities.`,
+      url: '#',
+      urlToImage: '/placeholder.svg',
+      publishedAt: new Date().toISOString(),
+      source: { name: `${newsLocation.charAt(0).toUpperCase() + newsLocation.slice(1)} News` },
+      location: newsLocation === 'local' ? 'Downtown Area' : newsLocation === 'city' ? 'City Center' : 'State Capital'
+    },
+    {
+      title: `Weather Alert: ${newsLocation === 'state' ? 'Statewide' : 'Local'} Conditions Update`,
+      description: `Current weather conditions and forecast for the ${newsLocation} area with important safety information.`,
+      url: '#',
+      publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      source: { name: 'Weather Service' },
+      location: newsLocation === 'local' ? 'Your Area' : newsLocation === 'city' ? 'Metro Area' : 'State Region'
+    }
+  ];
+
   useEffect(() => {
+    fetchFollowingUsers();
     fetchPosts();
 
     // Set up realtime subscription for new posts
@@ -128,6 +173,13 @@ const Feed = () => {
     };
   }, []);
 
+  // Re-fetch posts when feed type or following list changes
+  useEffect(() => {
+    if (followingUserIds.length > 0 || feedType === 'social') {
+      fetchPosts();
+    }
+  }, [feedType, followingUserIds]);
+
   useEffect(() => {
     if (feedType === 'news') {
       fetchNews();
@@ -149,8 +201,19 @@ const Feed = () => {
     );
   }
 
+  const handleRefresh = async () => {
+    setLoading(true);
+    await fetchFollowingUsers();
+    await fetchPosts();
+    if (feedType === 'news') {
+      await fetchNews();
+    }
+    setLoading(false);
+  };
+
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">
         <FeedToggle 
           feedType={feedType}
@@ -161,7 +224,7 @@ const Feed = () => {
         
         {feedType !== 'news' && <CreatePost onPostCreated={fetchPosts} />}
         
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in">
           {feedType === 'news' ? (
             newsArticles.length === 0 ? (
               <div className="text-center py-12">
@@ -169,24 +232,35 @@ const Feed = () => {
               </div>
             ) : (
               newsArticles.map((article, index) => (
-                <NewsCard
-                  key={index}
-                  article={article}
-                  locationType={newsLocation}
-                />
+                <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <NewsCard
+                    article={article}
+                    locationType={newsLocation}
+                  />
+                </div>
               ))
             )
+          ) : feedType === 'following' && followingUserIds.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">You're not following anyone yet. Follow some users to see their posts here!</p>
+            </div>
           ) : posts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No posts yet. Be the first to share something!</p>
+              <p className="text-muted-foreground">
+                {feedType === 'following' 
+                  ? "No posts from people you follow yet." 
+                  : "No posts yet. Be the first to share something!"
+                }
+              </p>
             </div>
           ) : (
-            posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLikeToggle={fetchPosts}
-              />
+            posts.map((post, index) => (
+              <div key={post.id} className="animate-fade-in hover-scale" style={{ animationDelay: `${index * 0.1}s` }}>
+                <PostCard
+                  post={post}
+                  onLikeToggle={fetchPosts}
+                />
+              </div>
             ))
           )}
         </div>
@@ -196,6 +270,7 @@ const Feed = () => {
         <UserSearch />
       </div>
     </div>
+    </PullToRefresh>
   );
 };
 

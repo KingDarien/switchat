@@ -45,12 +45,12 @@ const FeedToggle = ({ feedType, newsLocation, onFeedTypeChange, onNewsLocationCh
   const CurrentIcon = getCurrentIcon();
 
   return (
-    <div className="flex items-center gap-3 mb-6">
+    <div className="flex items-center gap-3 mb-6 p-4 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 rounded-lg border border-primary/10">
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button 
             variant="outline" 
-            className="flex items-center gap-2 hover-scale bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-300"
+            className="flex items-center gap-2 hover-scale bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all duration-300 shadow-md hover:shadow-lg"
           >
             <CurrentIcon className="h-4 w-4" />
             <span className="font-medium">{getCurrentLabel()}</span>
@@ -78,7 +78,8 @@ const FeedToggle = ({ feedType, newsLocation, onFeedTypeChange, onNewsLocationCh
 
       {feedType === 'news' && (
         <div className="flex items-center gap-2 animate-fade-in">
-          <div className="h-4 border-l border-border"></div>
+          <div className="h-6 border-l-2 border-primary/30"></div>
+          <span className="text-sm text-muted-foreground font-medium">Location:</span>
           {newsLocationOptions.map((option) => (
             <Button
               key={option.value}
@@ -87,8 +88,8 @@ const FeedToggle = ({ feedType, newsLocation, onFeedTypeChange, onNewsLocationCh
               onClick={() => onNewsLocationChange(option.value)}
               className={`transition-all duration-300 hover-scale ${
                 newsLocation === option.value 
-                  ? `bg-${option.color} text-white shadow-md` 
-                  : `hover:bg-${option.color}/10 hover:text-${option.color}`
+                  ? `bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md hover:shadow-lg` 
+                  : `hover:bg-primary/10 hover:text-primary border-primary/20 hover:border-primary/40`
               }`}
             >
               {option.label}

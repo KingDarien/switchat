@@ -43,7 +43,7 @@ const NewsCard = ({ article, locationType }: NewsCardProps) => {
   const timeAgo = formatDistanceToNow(new Date(article.publishedAt), { addSuffix: true });
 
   return (
-    <Card className="hover-scale transition-all duration-300 hover:shadow-lg border-l-4 border-l-primary animate-fade-in">
+    <Card className="hover-scale transition-all duration-300 hover:shadow-xl border-l-4 border-l-primary animate-fade-in bg-gradient-to-r from-card via-card to-primary/5">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2 mb-2">
