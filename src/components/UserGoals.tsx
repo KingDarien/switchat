@@ -60,28 +60,46 @@ const UserGoals: React.FC = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // First fetch goals
+      const { data: goalsData, error: goalsError } = await supabase
         .from('user_goals')
-        .select(`
-          *,
-          profiles (
-            id,
-            display_name,
-            username,
-            avatar_url,
-            trust_score,
-            is_verified,
-            verification_tier,
-            current_rank
-          ),
-          goal_contributions (count)
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setGoals((data as any[]) || []);
+      if (goalsError) throw goalsError;
+
+      if (!goalsData || goalsData.length === 0) {
+        setGoals([]);
+        return;
+      }
+
+      // Fetch user profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, user_id, display_name, username, avatar_url, trust_score, is_verified, verification_tier, current_rank')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Fetch contribution counts for each goal
+      const { data: contributionsData, error: contributionsError } = await supabase
+        .from('goal_contributions')
+        .select('goal_id')
+        .in('goal_id', goalsData.map(goal => goal.id));
+
+      if (contributionsError) throw contributionsError;
+
+      // Combine data
+      const goalsWithProfiles = goalsData.map(goal => ({
+        ...goal,
+        profiles: profileData,
+        goal_contributions: [{ count: contributionsData?.filter(c => c.goal_id === goal.id).length || 0 }]
+      }));
+
+      setGoals(goalsWithProfiles);
     } catch (error: any) {
       console.error('Error fetching goals:', error);
       toast({
