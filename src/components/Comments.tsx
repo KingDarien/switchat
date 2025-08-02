@@ -6,11 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import CommentForm from './CommentForm';
+import UserDisplayName from './UserDisplayName';
 
 interface Profile {
   username: string;
   display_name: string;
   avatar_url: string;
+  current_rank: number | null;
+  is_verified: boolean;
+  verification_tier: string;
 }
 
 interface Comment {
@@ -54,7 +58,7 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange }: CommentsProp
       const userIds = commentsData?.map(comment => comment.user_id) || [];
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, username, display_name, avatar_url')
+        .select('user_id, username, display_name, avatar_url, current_rank, is_verified, verification_tier')
         .in('user_id', userIds);
 
       if (profilesError) {
@@ -131,10 +135,16 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange }: CommentsProp
                     </AvatarFallback>
                   </Avatar>
                   
-                  <div className="flex-1 space-y-1">
+                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{displayName}</p>
-                      <p className="text-xs text-muted-foreground">@{username}</p>
+                      <UserDisplayName
+                        displayName={displayName}
+                        username={username}
+                        rank={comment.profiles?.current_rank}
+                        isVerified={comment.profiles?.is_verified}
+                        verificationTier={comment.profiles?.verification_tier}
+                        className="text-sm"
+                      />
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                       </p>

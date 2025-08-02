@@ -7,11 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Heart, MessageCircle, Share } from 'lucide-react';
 import Comments from './Comments';
+import UserDisplayName from './UserDisplayName';
 
 interface Profile {
   username: string;
   display_name: string;
   avatar_url: string;
+  current_rank: number | null;
+  is_verified: boolean;
+  verification_tier: string;
 }
 
 interface Post {
@@ -136,10 +140,16 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
             <AvatarImage src={post.profiles?.avatar_url} />
             <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
           </Avatar>
-          <div>
-            <p className="font-semibold">{displayName}</p>
-            <p className="text-sm text-muted-foreground">
-              @{username} · {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+          <div className="flex flex-col">
+            <UserDisplayName
+              displayName={displayName}
+              username={username}
+              rank={post.profiles?.current_rank}
+              isVerified={post.profiles?.is_verified}
+              verificationTier={post.profiles?.verification_tier}
+            />
+            <p className="text-sm text-muted-foreground mt-1">
+              {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
             </p>
           </div>
         </div>

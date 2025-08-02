@@ -10,6 +10,7 @@ import { Users, UserPlus, UserMinus, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import PostCard from '@/components/PostCard';
 import Navbar from '@/components/Navbar';
+import UserDisplayName from '@/components/UserDisplayName';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Profile {
@@ -19,6 +20,9 @@ interface Profile {
   bio: string;
   avatar_url: string;
   created_at: string;
+  current_rank: number | null;
+  is_verified: boolean;
+  verification_tier: string;
 }
 
 interface Post {
@@ -224,12 +228,16 @@ const UserProfile = () => {
                 </AvatarFallback>
               </Avatar>
               
-              <div className="flex-1 space-y-3">
+               <div className="flex-1 space-y-3">
                 <div>
-                  <h1 className="text-2xl font-bold">{displayName}</h1>
-                  {profile.username && (
-                    <p className="text-muted-foreground">@{profile.username}</p>
-                  )}
+                  <UserDisplayName
+                    displayName={displayName}
+                    username={profile.username || ''}
+                    rank={profile.current_rank}
+                    isVerified={profile.is_verified}
+                    verificationTier={profile.verification_tier}
+                    className="text-2xl"
+                  />
                 </div>
                 
                 {profile.bio && (

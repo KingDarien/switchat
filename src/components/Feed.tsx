@@ -8,6 +8,9 @@ interface Profile {
   username: string;
   display_name: string;
   avatar_url: string;
+  current_rank: number | null;
+  is_verified: boolean;
+  verification_tier: string;
 }
 
 interface Post {
@@ -40,7 +43,7 @@ const Feed = () => {
       const userIds = postsData?.map(post => post.user_id) || [];
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('user_id, username, display_name, avatar_url')
+        .select('user_id, username, display_name, avatar_url, current_rank, is_verified, verification_tier')
         .in('user_id', userIds);
 
       if (profilesError) {

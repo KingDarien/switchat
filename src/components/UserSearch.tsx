@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Search, Users, UserPlus, UserMinus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import UserDisplayName from './UserDisplayName';
 
 interface Profile {
   user_id: string;
@@ -16,6 +17,9 @@ interface Profile {
   display_name: string;
   bio: string;
   avatar_url: string;
+  current_rank: number | null;
+  is_verified: boolean;
+  verification_tier: string;
 }
 
 interface ProfileWithFollowStatus extends Profile {
@@ -211,13 +215,14 @@ const UserSearch = () => {
                     <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
                   </Avatar>
                   
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium truncate">{displayName}</p>
-                      {userProfile.username && (
-                        <p className="text-sm text-muted-foreground">@{userProfile.username}</p>
-                      )}
-                    </div>
+                   <div className="flex-1 min-w-0">
+                    <UserDisplayName
+                      displayName={displayName}
+                      username={userProfile.username || ''}
+                      rank={userProfile.current_rank}
+                      isVerified={userProfile.is_verified}
+                      verificationTier={userProfile.verification_tier}
+                    />
                     
                     {userProfile.bio && (
                       <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
