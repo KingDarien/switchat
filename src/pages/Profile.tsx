@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Camera } from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
 interface Profile {
   username: string;
@@ -115,101 +116,107 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto p-4">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-muted rounded w-1/3"></div>
-          <div className="h-64 bg-muted rounded"></div>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="max-w-2xl mx-auto p-4">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-muted rounded w-1/3"></div>
+            <div className="h-64 bg-muted rounded"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 pb-20 space-y-6">
-      <h1 className="text-3xl font-bold">Profile Settings</h1>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>
-            Update your profile information and let others know more about you.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center gap-6">
-            <div className="relative">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={profile.avatar_url} />
-                <AvatarFallback className="text-lg">
-                  {getInitials(profile.display_name)}
-                </AvatarFallback>
-              </Avatar>
-              <Button
-                size="icon"
-                variant="outline"
-                className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-                disabled
-              >
-                <Camera className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground">
-                Profile photo coming soon
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                placeholder="@username"
-                value={profile.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
-              />
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="max-w-2xl mx-auto p-4 pb-20 space-y-6">
+        <h1 className="text-3xl font-bold">Profile Settings</h1>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+            <CardDescription>
+              Update your profile information and let others know more about you.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={profile.avatar_url} />
+                  <AvatarFallback className="text-lg">
+                    {getInitials(profile.display_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
+                  disabled
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">
+                  Profile photo coming soon
+                </p>
+              </div>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="display-name">Display Name</Label>
-              <Input
-                id="display-name"
-                placeholder="Your display name"
-                value={profile.display_name}
-                onChange={(e) => handleInputChange('display_name', e.target.value)}
-              />
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  placeholder="@username"
+                  value={profile.username}
+                  onChange={(e) => handleInputChange('username', e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="display-name">Display Name</Label>
+                <Input
+                  id="display-name"
+                  placeholder="Your display name"
+                  value={profile.display_name}
+                  onChange={(e) => handleInputChange('display_name', e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  placeholder="Tell us about yourself..."
+                  value={profile.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
             </div>
             
+            <Button onClick={handleSave} disabled={saving} className="w-full">
+              {saving ? 'Saving...' : 'Save Profile'}
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Information</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                placeholder="Tell us about yourself..."
-                value={profile.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                className="min-h-[100px]"
-              />
+              <Label>Email</Label>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
-          </div>
-          
-          <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? 'Saving...' : 'Save Profile'}
-          </Button>
-        </CardContent>
-      </Card>
-      
-      <Card>
-        <CardHeader>
-          <CardTitle>Account Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
