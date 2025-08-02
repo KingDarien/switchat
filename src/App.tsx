@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,9 +12,17 @@ import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Create QueryClient with proper configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
-const App = () => {
+const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
