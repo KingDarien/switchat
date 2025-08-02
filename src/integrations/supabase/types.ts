@@ -666,6 +666,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      verify_user: {
+        Args: { user_identifier: string; tier?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
