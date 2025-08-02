@@ -168,6 +168,144 @@ export type Database = {
         }
         Relationships: []
       }
+      goal_admin_reviews: {
+        Row: {
+          appeal_text: string | null
+          decision: string
+          goal_id: string
+          id: string
+          reason: string | null
+          review_type: string
+          reviewed_at: string | null
+          reviewer_id: string
+        }
+        Insert: {
+          appeal_text?: string | null
+          decision: string
+          goal_id: string
+          id?: string
+          reason?: string | null
+          review_type: string
+          reviewed_at?: string | null
+          reviewer_id: string
+        }
+        Update: {
+          appeal_text?: string | null
+          decision?: string
+          goal_id?: string
+          id?: string
+          reason?: string | null
+          review_type?: string
+          reviewed_at?: string | null
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_admin_reviews_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "user_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goal_contributions: {
+        Row: {
+          amount: number
+          contribution_type: string | null
+          contributor_id: string
+          created_at: string | null
+          currency: string | null
+          goal_id: string
+          id: string
+          is_anonymous: boolean | null
+          message: string | null
+          refunded_at: string | null
+          status: string | null
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          amount: number
+          contribution_type?: string | null
+          contributor_id: string
+          created_at?: string | null
+          currency?: string | null
+          goal_id: string
+          id?: string
+          is_anonymous?: boolean | null
+          message?: string | null
+          refunded_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          amount?: number
+          contribution_type?: string | null
+          contributor_id?: string
+          created_at?: string | null
+          currency?: string | null
+          goal_id?: string
+          id?: string
+          is_anonymous?: boolean | null
+          message?: string | null
+          refunded_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_contributions_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "user_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goal_resources: {
+        Row: {
+          contributor_id: string
+          created_at: string | null
+          estimated_value: number | null
+          goal_id: string
+          id: string
+          is_anonymous: boolean | null
+          resource_description: string
+          resource_type: string
+          status: string | null
+        }
+        Insert: {
+          contributor_id: string
+          created_at?: string | null
+          estimated_value?: number | null
+          goal_id: string
+          id?: string
+          is_anonymous?: boolean | null
+          resource_description: string
+          resource_type: string
+          status?: string | null
+        }
+        Update: {
+          contributor_id?: string
+          created_at?: string | null
+          estimated_value?: number | null
+          goal_id?: string
+          id?: string
+          is_anonymous?: boolean | null
+          resource_description?: string
+          resource_type?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_resources_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "user_goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       growth_tips: {
         Row: {
           created_at: string
@@ -299,14 +437,18 @@ export type Database = {
           created_at: string
           current_rank: number | null
           display_name: string | null
+          goals_completed: number | null
           id: string
           is_verified: boolean | null
           location: string | null
           niche_id: string | null
           popularity_score: number | null
           social_links: Json | null
+          total_contributions_made: number | null
+          trust_score: number | null
           updated_at: string
           user_id: string
+          user_role: string | null
           username: string | null
           verification_tier: string | null
           website_url: string | null
@@ -317,14 +459,18 @@ export type Database = {
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
+          goals_completed?: number | null
           id?: string
           is_verified?: boolean | null
           location?: string | null
           niche_id?: string | null
           popularity_score?: number | null
           social_links?: Json | null
+          total_contributions_made?: number | null
+          trust_score?: number | null
           updated_at?: string
           user_id: string
+          user_role?: string | null
           username?: string | null
           verification_tier?: string | null
           website_url?: string | null
@@ -335,14 +481,18 @@ export type Database = {
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
+          goals_completed?: number | null
           id?: string
           is_verified?: boolean | null
           location?: string | null
           niche_id?: string | null
           popularity_score?: number | null
           social_links?: Json | null
+          total_contributions_made?: number | null
+          trust_score?: number | null
           updated_at?: string
           user_id?: string
+          user_role?: string | null
           username?: string | null
           verification_tier?: string | null
           website_url?: string | null
@@ -359,13 +509,24 @@ export type Database = {
       }
       user_goals: {
         Row: {
+          admin_notes: string | null
+          approval_status: string | null
+          approved_at: string | null
           created_at: string
+          currency: string | null
+          current_funding: number | null
           current_value: number | null
           description: string | null
+          funding_deadline: string | null
+          funding_target: number | null
           goal_type: string
           id: string
           is_active: boolean | null
+          is_anonymous: boolean | null
           is_completed: boolean | null
+          is_public: boolean | null
+          rejection_reason: string | null
+          submitted_at: string | null
           target_date: string | null
           target_value: number | null
           title: string
@@ -373,13 +534,24 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
           created_at?: string
+          currency?: string | null
+          current_funding?: number | null
           current_value?: number | null
           description?: string | null
+          funding_deadline?: string | null
+          funding_target?: number | null
           goal_type: string
           id?: string
           is_active?: boolean | null
+          is_anonymous?: boolean | null
           is_completed?: boolean | null
+          is_public?: boolean | null
+          rejection_reason?: string | null
+          submitted_at?: string | null
           target_date?: string | null
           target_value?: number | null
           title: string
@@ -387,13 +559,24 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
           created_at?: string
+          currency?: string | null
+          current_funding?: number | null
           current_value?: number | null
           description?: string | null
+          funding_deadline?: string | null
+          funding_target?: number | null
           goal_type?: string
           id?: string
           is_active?: boolean | null
+          is_anonymous?: boolean | null
           is_completed?: boolean | null
+          is_public?: boolean | null
+          rejection_reason?: string | null
+          submitted_at?: string | null
           target_date?: string | null
           target_value?: number | null
           title?: string
@@ -436,6 +619,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_watchlist: {
+        Row: {
+          added_by_admin_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          reason: string
+          risk_level: string | null
+          user_id: string
+        }
+        Insert: {
+          added_by_admin_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          reason: string
+          risk_level?: string | null
+          user_id: string
+        }
+        Update: {
+          added_by_admin_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          reason?: string
+          risk_level?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
