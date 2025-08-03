@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import Feed from '@/components/Feed';
+import VideoFeed from '@/components/VideoFeed';
+import SwipeContainer from '@/components/SwipeContainer';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -27,11 +29,18 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      <div className="max-w-6xl mx-auto p-4">
-        <Feed />
-      </div>
+      <SwipeContainer>
+        {[
+          // Main Feed
+          <div className="max-w-6xl mx-auto p-4 pb-20">
+            <Feed />
+          </div>,
+          // Video Feed
+          <VideoFeed />
+        ]}
+      </SwipeContainer>
     </div>
   );
 };

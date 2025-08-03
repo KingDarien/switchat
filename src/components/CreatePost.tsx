@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Image, X } from 'lucide-react';
+import { Image, X, Video, Play } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface CreatePostProps {
   onPostCreated?: () => void;
@@ -16,7 +17,10 @@ interface CreatePostProps {
 const CreatePost = ({ onPostCreated }: CreatePostProps) => {
   const [content, setContent] = useState('');
   const [image, setImage] = useState<File | null>(null);
+  const [video, setVideo] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [postType, setPostType] = useState<'text' | 'image' | 'video'>('text');
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -25,8 +29,34 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
     const file = e.target.files?.[0];
     if (file) {
       setImage(file);
+      setVideo(null);
+      setVideoPreview(null);
+      setPostType('image');
       const reader = new FileReader();
       reader.onload = () => setImagePreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check video size (max 50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Video file must be less than 50MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setVideo(file);
+      setImage(null);
+      setImagePreview(null);
+      setPostType('video');
+      const reader = new FileReader();
+      reader.onload = () => setVideoPreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -34,14 +64,21 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
   const removeImage = () => {
     setImage(null);
     setImagePreview(null);
+    setPostType('text');
   };
 
-  const uploadImage = async (file: File): Promise<string | null> => {
+  const removeVideo = () => {
+    setVideo(null);
+    setVideoPreview(null);
+    setPostType('text');
+  };
+
+  const uploadFile = async (file: File, bucket: string): Promise<string | null> => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${user!.id}/${Date.now()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('posts')
+      .from(bucket)
       .upload(fileName, file);
 
     if (uploadError) {
@@ -49,8 +86,20 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
       return null;
     }
 
-    const { data } = supabase.storage.from('posts').getPublicUrl(fileName);
+    const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
     return data.publicUrl;
+  };
+
+  const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(Math.round(video.duration));
+      };
+      video.src = URL.createObjectURL(file);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,12 +110,29 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
 
     try {
       let imageUrl = null;
+      let videoUrl = null;
+      let duration = null;
+
       if (image) {
-        imageUrl = await uploadImage(image);
+        imageUrl = await uploadFile(image, 'posts');
         if (!imageUrl) {
           toast({
             title: "Error",
             description: "Failed to upload image",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (video) {
+        videoUrl = await uploadFile(video, 'videos');
+        duration = await getVideoDuration(video);
+        if (!videoUrl) {
+          toast({
+            title: "Error",
+            description: "Failed to upload video",
             variant: "destructive",
           });
           setLoading(false);
@@ -79,6 +145,9 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
         .insert({
           content: content.trim(),
           image_url: imageUrl,
+          video_url: videoUrl,
+          duration: duration,
+          post_type: postType,
           user_id: user!.id,
         });
 
@@ -88,12 +157,15 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
 
       setContent('');
       setImage(null);
+      setVideo(null);
       setImagePreview(null);
+      setVideoPreview(null);
+      setPostType('text');
       onPostCreated?.();
       
       toast({
         title: "Success!",
-        description: "Your post has been created.",
+        description: `Your ${postType} post has been created.`,
       });
     } catch (error: any) {
       toast({
@@ -140,9 +212,28 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
               </Button>
             </div>
           )}
+
+          {videoPreview && (
+            <div className="relative">
+              <video
+                src={videoPreview}
+                controls
+                className="max-h-64 rounded-lg object-cover w-full"
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="absolute top-2 right-2"
+                onClick={removeVideo}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center gap-4">
               <Label htmlFor="image-upload" className="cursor-pointer">
                 <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
                   <Image className="h-5 w-5" />
@@ -155,6 +246,20 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
                 accept="image/*"
                 className="hidden"
                 onChange={handleImageSelect}
+              />
+
+              <Label htmlFor="video-upload" className="cursor-pointer">
+                <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground">
+                  <Video className="h-5 w-5" />
+                  <span>Add Video</span>
+                </div>
+              </Label>
+              <Input
+                id="video-upload"
+                type="file"
+                accept="video/*"
+                className="hidden"
+                onChange={handleVideoSelect}
               />
             </div>
             
