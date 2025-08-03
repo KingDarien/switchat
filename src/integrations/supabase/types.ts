@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          reason: string | null
+          target_resource_id: string | null
+          target_resource_type: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          reason?: string | null
+          target_resource_id?: string | null
+          target_resource_type?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          reason?: string | null
+          target_resource_id?: string | null
+          target_resource_type?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -48,6 +84,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          participant_1_id: string
+          participant_2_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant_1_id: string
+          participant_2_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant_1_id?: string
+          participant_2_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       daily_scriptures: {
         Row: {
@@ -411,6 +474,39 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_system_message: boolean | null
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          is_system_message?: boolean | null
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          is_system_message?: boolean | null
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       niches: {
         Row: {
           created_at: string
@@ -559,6 +655,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
       }
       user_goals: {
         Row: {
