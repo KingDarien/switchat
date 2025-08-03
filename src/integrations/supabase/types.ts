@@ -85,6 +85,30 @@ export type Database = {
           },
         ]
       }
+      community_tags: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
@@ -534,6 +558,39 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_questions: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          options: Json | null
+          order_index: number
+          question_text: string
+          question_type: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          options?: Json | null
+          order_index: number
+          question_text: string
+          question_type?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          options?: Json | null
+          order_index?: number
+          question_text?: string
+          question_type?: string
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           content: string
@@ -577,6 +634,7 @@ export type Database = {
           banned_at: string | null
           banned_by: string | null
           bio: string | null
+          birthday: string | null
           created_at: string
           current_rank: number | null
           display_name: string | null
@@ -606,6 +664,7 @@ export type Database = {
           banned_at?: string | null
           banned_by?: string | null
           bio?: string | null
+          birthday?: string | null
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
@@ -635,6 +694,7 @@ export type Database = {
           banned_at?: string | null
           banned_by?: string | null
           bio?: string | null
+          birthday?: string | null
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
@@ -691,6 +751,38 @@ export type Database = {
           reason?: string | null
         }
         Relationships: []
+      }
+      user_communities: {
+        Row: {
+          created_at: string
+          id: string
+          score: number | null
+          tag_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          score?: number | null
+          tag_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          score?: number | null
+          tag_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_communities_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "community_tags"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_goals: {
         Row: {
@@ -770,6 +862,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          show_birthday_banner: boolean | null
+          show_events_banner: boolean | null
+          show_weather_banner: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          show_birthday_banner?: boolean | null
+          show_events_banner?: boolean | null
+          show_weather_banner?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          show_birthday_banner?: boolean | null
+          show_events_banner?: boolean | null
+          show_weather_banner?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_rankings: {
         Row: {
           calculated_at: string
@@ -801,6 +923,38 @@ export type Database = {
             columns: ["niche_id"]
             isOneToOne: false
             referencedRelation: "niches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_responses: {
+        Row: {
+          created_at: string
+          id: string
+          question_id: string
+          response_value: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_id: string
+          response_value: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_id?: string
+          response_value?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "onboarding_questions"
             referencedColumns: ["id"]
           },
         ]
@@ -838,6 +992,42 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_requests: {
+        Row: {
+          created_at: string
+          denial_reason: string | null
+          id: string
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          denial_reason?: string | null
+          id?: string
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          denial_reason?: string | null
+          id?: string
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -849,6 +1039,10 @@ export type Database = {
       }
       can_admin_action: {
         Args: { target_user_id_param: string }
+        Returns: boolean
+      }
+      can_request_verification: {
+        Args: { user_id_param: string }
         Returns: boolean
       }
       log_admin_action: {

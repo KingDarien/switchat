@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Camera, Briefcase, MapPin, Globe } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import UserGoals from '@/components/UserGoals';
+import VerificationRequest from '@/components/VerificationRequest';
 
 interface Profile {
   username: string;
@@ -293,6 +294,9 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Verification Request */}
+        <VerificationRequest />
 
         {/* Goals Section */}
         <Card>

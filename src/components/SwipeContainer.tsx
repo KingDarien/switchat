@@ -142,12 +142,12 @@ const SwipeContainer = ({ children }: SwipeContainerProps) => {
         onMouseUp={handleMouseUp}
       >
         {/* Main Feed */}
-        <div className="w-screen h-full flex-shrink-0">
+        <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
           {children[0]}
         </div>
         
         {/* Video Feed */}
-        <div className="w-screen h-full flex-shrink-0">
+        <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
           {children[1]}
         </div>
       </div>
