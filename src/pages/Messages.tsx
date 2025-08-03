@@ -2,19 +2,46 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { XCircle, Users, MessageCircle, ClipboardList, Shield, Crown } from 'lucide-react';
+import { XCircle, Users, MessageCircle, ClipboardList, Shield, Crown, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import PeopleManagement from '@/components/admin/PeopleManagement';
 import MessagingSystem from '@/components/admin/MessagingSystem';
 import GoalReviews from '@/components/admin/GoalReviews';
+import VerificationReviews from '@/components/admin/VerificationReviews';
 
 const Messages = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [pendingGoalsCount, setPendingGoalsCount] = useState(0);
+  const [pendingVerificationCount, setPendingVerificationCount] = useState(0);
   const { user } = useAuth();
+
+  const fetchPendingCounts = async () => {
+    if (!user) return;
+    
+    try {
+      // Fetch pending goals count
+      const { count: goalsCount } = await supabase
+        .from('user_goals')
+        .select('*', { count: 'exact', head: true })
+        .in('approval_status', ['pending', 'under_review'])
+        .eq('is_active', true);
+
+      // Fetch pending verification requests count
+      const { count: verificationCount } = await supabase
+        .from('verification_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+
+      setPendingGoalsCount(goalsCount || 0);
+      setPendingVerificationCount(verificationCount || 0);
+    } catch (error) {
+      console.error('Error fetching pending counts:', error);
+    }
+  };
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -30,6 +57,11 @@ const Messages = () => {
       setCurrentUserRole(userRole);
       setIsAdmin(['admin', 'moderator', 'super_admin'].includes(userRole));
       setLoading(false);
+      
+      // Fetch pending counts for admin users
+      if (['admin', 'moderator', 'super_admin'].includes(userRole)) {
+        fetchPendingCounts();
+      }
     };
     
     checkAdminStatus();
@@ -139,7 +171,36 @@ const Messages = () => {
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-6">
-            <GoalReviews />
+            <Tabs defaultValue="goals" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="goals" className="flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4" />
+                  Goal Reviews
+                  {pendingGoalsCount > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
+                      {pendingGoalsCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="verifications" className="flex items-center gap-2">
+                  <Star className="h-4 w-4" />
+                  Verification Reviews
+                  {pendingVerificationCount > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
+                      {pendingVerificationCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="goals">
+                <GoalReviews />
+              </TabsContent>
+
+              <TabsContent value="verifications">
+                <VerificationReviews />
+              </TabsContent>
+            </Tabs>
           </TabsContent>
         </Tabs>
       </div>
