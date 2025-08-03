@@ -465,16 +465,23 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          ban_reason: string | null
+          banned_at: string | null
+          banned_by: string | null
           bio: string | null
           created_at: string
           current_rank: number | null
           display_name: string | null
           goals_completed: number | null
           id: string
+          is_protected: boolean | null
           is_verified: boolean | null
+          last_login_at: string | null
           location: string | null
           niche_id: string | null
           popularity_score: number | null
+          requires_approval: boolean | null
+          security_level: number | null
           social_links: Json | null
           total_contributions_made: number | null
           trust_score: number | null
@@ -487,16 +494,23 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           bio?: string | null
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
           goals_completed?: number | null
           id?: string
+          is_protected?: boolean | null
           is_verified?: boolean | null
+          last_login_at?: string | null
           location?: string | null
           niche_id?: string | null
           popularity_score?: number | null
+          requires_approval?: boolean | null
+          security_level?: number | null
           social_links?: Json | null
           total_contributions_made?: number | null
           trust_score?: number | null
@@ -509,16 +523,23 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          ban_reason?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
           bio?: string | null
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
           goals_completed?: number | null
           id?: string
+          is_protected?: boolean | null
           is_verified?: boolean | null
+          last_login_at?: string | null
           location?: string | null
           niche_id?: string | null
           popularity_score?: number | null
+          requires_approval?: boolean | null
+          security_level?: number | null
           social_links?: Json | null
           total_contributions_made?: number | null
           trust_score?: number | null
