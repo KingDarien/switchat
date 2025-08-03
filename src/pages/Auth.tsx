@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import PasswordReset from '@/components/PasswordReset';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -14,9 +15,23 @@ const Auth = () => {
   const [username, setUsername] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetMode, setResetMode] = useState(false);
+  const [searchParams] = useSearchParams();
+  const { signIn, signUp, confirmPasswordReset } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    const token = searchParams.get('token');
+    
+    if (mode === 'reset' && token) {
+      setResetMode(true);
+    }
+  }, [searchParams]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +81,118 @@ const Auth = () => {
     setLoading(false);
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Password mismatch",
+        description: "The passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const token = searchParams.get('token');
+    
+    if (!token) {
+      toast({
+        title: "Invalid reset link",
+        description: "This reset link is invalid or has expired.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await confirmPasswordReset(token, newPassword);
+    
+    if (error) {
+      toast({
+        title: "Error resetting password",
+        description: error.message || "Failed to reset password. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Password reset successful",
+        description: "Your password has been updated. You can now sign in.",
+      });
+      setResetMode(false);
+      navigate('/auth');
+    }
+    
+    setLoading(false);
+  };
+
+  // Show password reset form if user clicked forgot password
+  if (showPasswordReset) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <PasswordReset onBack={() => setShowPasswordReset(false)} />
+      </div>
+    );
+  }
+
+  // Show password reset confirmation form if accessed via reset link
+  if (resetMode) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Set new password</CardTitle>
+            <CardDescription>Enter your new password below</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordReset} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Updating password...' : 'Update password'}
+              </Button>
+            </form>
+            
+            <div className="mt-4 p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                🔒 Password must be at least 6 characters long
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -105,6 +232,17 @@ const Auth = () => {
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
+                
+                <div className="text-center">
+                  <Button 
+                    variant="link" 
+                    type="button"
+                    onClick={() => setShowPasswordReset(true)}
+                    className="text-sm text-muted-foreground hover:text-primary"
+                  >
+                    Forgot your password?
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             
