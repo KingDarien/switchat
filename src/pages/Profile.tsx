@@ -47,6 +47,7 @@ const Profile = () => {
   const [niches, setNiches] = useState<Niche[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -142,6 +143,63 @@ const Profile = () => {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select a valid image file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error", 
+        description: "Image must be less than 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user!.id}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('posts')
+        .upload(`avatars/${fileName}`, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('posts')
+        .getPublicUrl(`avatars/${fileName}`);
+
+      // Update profile with new avatar URL
+      setProfile(prev => ({ ...prev, avatar_url: data.publicUrl }));
+
+      toast({
+        title: "Success!",
+        description: "Profile photo uploaded successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const getInitials = (name: string) => {
     if (!name) return user?.email?.charAt(0).toUpperCase() || 'U';
     return name
@@ -182,24 +240,34 @@ const Profile = () => {
           <CardContent className="space-y-6">
             <div className="flex items-center gap-6">
               <div className="relative">
-                <Avatar className="h-20 w-20">
-                  <AvatarImage src={profile.avatar_url} />
-                  <AvatarFallback className="text-lg">
-                    {getInitials(profile.display_name)}
-                  </AvatarFallback>
-                </Avatar>
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+                <label htmlFor="avatar-upload" className="cursor-pointer">
+                  <Avatar className="h-20 w-20 hover:opacity-75 transition-opacity">
+                    <AvatarImage src={profile.avatar_url} />
+                    <AvatarFallback className="text-lg">
+                      {getInitials(profile.display_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </label>
                 <Button
                   size="icon"
                   variant="outline"
                   className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-                  disabled
+                  disabled={uploading}
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
                 >
                   <Camera className="h-4 w-4" />
                 </Button>
               </div>
               <div className="flex-1">
                 <p className="text-sm text-muted-foreground">
-                  Profile photo coming soon
+                  {uploading ? 'Uploading...' : 'Click to upload profile photo'}
                 </p>
               </div>
             </div>
