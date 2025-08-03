@@ -9,12 +9,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Home, User, LogOut, Heart, MessageCircle, Search } from 'lucide-react';
+import { Home, User, LogOut, Heart, MessageCircle, Search, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Navbar = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -22,6 +25,22 @@ const Navbar = () => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_role')
+        .eq('user_id', user.id)
+        .single();
+      
+      setIsAdmin(data?.user_role === 'admin' || data?.user_role === 'moderator');
+    };
+    
+    checkAdminStatus();
+  }, [user]);
 
   if (!user) return null;
 
@@ -80,8 +99,8 @@ const Navbar = () => {
                 size="sm"
                 className="flex flex-col items-center gap-0.5 h-auto py-1 px-1"
               >
-                <MessageCircle className="h-3 w-3" />
-                <span className="text-[10px]">Messages</span>
+                {isAdmin ? <Shield className="h-3 w-3" /> : <MessageCircle className="h-3 w-3" />}
+                <span className="text-[10px]">{isAdmin ? 'Admin' : 'Messages'}</span>
               </Button>
             </Link>
             
