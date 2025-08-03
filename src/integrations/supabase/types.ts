@@ -591,6 +591,48 @@ export type Database = {
         }
         Relationships: []
       }
+      password_reset_requests: {
+        Row: {
+          attempt_count: number | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_suspicious: boolean | null
+          token: string
+          used_at: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attempt_count?: number | null
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          is_suspicious?: boolean | null
+          token: string
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attempt_count?: number | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_suspicious?: boolean | null
+          token?: string
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           content: string
@@ -1041,9 +1083,17 @@ export type Database = {
         Args: { target_user_id_param: string }
         Returns: boolean
       }
+      can_request_password_reset: {
+        Args: { email_param: string }
+        Returns: boolean
+      }
       can_request_verification: {
         Args: { user_id_param: string }
         Returns: boolean
+      }
+      cleanup_expired_reset_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       log_admin_action: {
         Args: {
