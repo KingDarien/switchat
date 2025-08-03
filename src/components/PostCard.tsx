@@ -5,7 +5,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Heart, MessageCircle, Share } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Heart, MessageCircle, Share, Smile } from 'lucide-react';
+import EmojiPicker from 'emoji-picker-react';
 import Comments from './Comments';
 import UserDisplayName from './UserDisplayName';
 
@@ -33,26 +35,32 @@ interface PostCardProps {
 }
 
 const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
+  const [reactions, setReactions] = useState<{ [emoji: string]: number }>({});
+  const [userReaction, setUserReaction] = useState<string | null>(null);
   const [commentsCount, setCommentsCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
-    fetchLikes();
+    fetchReactions();
     fetchComments();
-    checkIfLiked();
+    checkUserReaction();
   }, [post.id, user?.id]);
 
-  const fetchLikes = async () => {
+  const fetchReactions = async () => {
     const { data, error } = await supabase
       .from('likes')
-      .select('id')
+      .select('emoji')
       .eq('post_id', post.id);
 
     if (!error && data) {
-      setLikesCount(data.length);
+      // Count reactions by emoji
+      const reactionCounts: { [emoji: string]: number } = {};
+      data.forEach(like => {
+        reactionCounts[like.emoji] = (reactionCounts[like.emoji] || 0) + 1;
+      });
+      setReactions(reactionCounts);
     }
   };
 
@@ -67,54 +75,94 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
     }
   };
 
-  const checkIfLiked = async () => {
+  const checkUserReaction = async () => {
     if (!user) return;
 
     const { data, error } = await supabase
       .from('likes')
-      .select('id')
+      .select('emoji')
       .eq('post_id', post.id)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (!error && data) {
-      setLiked(true);
+      setUserReaction(data.emoji);
     }
   };
 
-  const toggleLike = async () => {
+  const handleEmojiSelect = async (emojiData: any) => {
     if (!user) return;
+    
+    const selectedEmoji = emojiData.emoji;
     setLoading(true);
+    setEmojiPickerOpen(false);
 
     try {
-      if (liked) {
+      // If user already has this reaction, remove it
+      if (userReaction === selectedEmoji) {
         const { error } = await supabase
           .from('likes')
           .delete()
           .eq('post_id', post.id)
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .eq('emoji', selectedEmoji);
 
         if (!error) {
-          setLiked(false);
-          setLikesCount(prev => prev - 1);
+          setUserReaction(null);
+          setReactions(prev => {
+            const newReactions = { ...prev };
+            newReactions[selectedEmoji] = Math.max(0, (newReactions[selectedEmoji] || 0) - 1);
+            if (newReactions[selectedEmoji] === 0) {
+              delete newReactions[selectedEmoji];
+            }
+            return newReactions;
+          });
           onLikeToggle?.();
         }
       } else {
+        // Remove existing reaction if any
+        if (userReaction) {
+          await supabase
+            .from('likes')
+            .delete()
+            .eq('post_id', post.id)
+            .eq('user_id', user.id)
+            .eq('emoji', userReaction);
+        }
+
+        // Add new reaction
         const { error } = await supabase
           .from('likes')
           .insert({
             post_id: post.id,
             user_id: user.id,
+            emoji: selectedEmoji
           });
 
         if (!error) {
-          setLiked(true);
-          setLikesCount(prev => prev + 1);
+          setReactions(prev => {
+            const newReactions = { ...prev };
+            
+            // Decrease old reaction count
+            if (userReaction) {
+              newReactions[userReaction] = Math.max(0, (newReactions[userReaction] || 0) - 1);
+              if (newReactions[userReaction] === 0) {
+                delete newReactions[userReaction];
+              }
+            }
+            
+            // Increase new reaction count
+            newReactions[selectedEmoji] = (newReactions[selectedEmoji] || 0) + 1;
+            
+            return newReactions;
+          });
+          
+          setUserReaction(selectedEmoji);
           onLikeToggle?.();
         }
       }
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error('Error handling reaction:', error);
     } finally {
       setLoading(false);
     }
@@ -169,16 +217,48 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
         )}
         
         <div className="flex items-center gap-6 pt-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`flex items-center gap-2 ${liked ? 'text-red-500' : 'text-muted-foreground'}`}
-            onClick={toggleLike}
-            disabled={loading}
-          >
-            <Heart className={`h-4 w-4 ${liked ? 'fill-current' : ''}`} />
-            <span>{likesCount}</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={loading}
+                  className="text-muted-foreground hover:text-primary"
+                >
+                  <Smile className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" side="top">
+                <EmojiPicker
+                  onEmojiClick={handleEmojiSelect}
+                  width={280}
+                  height={350}
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {/* Display reactions */}
+            {Object.keys(reactions).length > 0 && (
+              <div className="flex items-center gap-1 flex-wrap">
+                {Object.entries(reactions).map(([emoji, count]) => (
+                  <Button
+                    key={emoji}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEmojiSelect({ emoji })}
+                    className={`text-xs h-6 px-2 ${
+                      userReaction === emoji 
+                        ? 'bg-primary/10 text-primary border border-primary/20' 
+                        : 'text-muted-foreground hover:text-primary'
+                    }`}
+                  >
+                    {emoji} {count}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
           
           <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground">
             <Share className="h-4 w-4" />
