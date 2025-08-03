@@ -835,6 +835,21 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: number
       }
+      can_admin_action: {
+        Args: { target_user_id_param: string }
+        Returns: boolean
+      }
+      log_admin_action: {
+        Args: {
+          action_type_param: string
+          target_user_id_param?: string
+          target_resource_type_param?: string
+          target_resource_id_param?: string
+          details_param?: Json
+          reason_param?: string
+        }
+        Returns: string
+      }
       update_user_rankings: {
         Args: Record<PropertyKey, never>
         Returns: undefined
