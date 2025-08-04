@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Heart, DollarSign, Gift, Calendar, Eye, EyeOff } from 'lucide-react';
+import { Heart, DollarSign, Gift, Calendar, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import UserDisplayName from './UserDisplayName';
 
@@ -46,9 +46,10 @@ interface GoalCardProps {
   isOwner?: boolean;
   onContribute?: (goalId: string) => void;
   onEdit?: (goal: Goal) => void;
+  onDelete?: (goalId: string) => void;
 }
 
-const GoalCard: React.FC<GoalCardProps> = ({ goal, isOwner = false, onContribute, onEdit }) => {
+const GoalCard: React.FC<GoalCardProps> = ({ goal, isOwner = false, onContribute, onEdit, onDelete }) => {
   const { toast } = useToast();
   const [isSupporting, setIsSupporting] = useState(false);
 
@@ -241,6 +242,13 @@ const GoalCard: React.FC<GoalCardProps> = ({ goal, isOwner = false, onContribute
                 {goal._count?.goal_contributions || 0} supporters
               </Badge>
             )}
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete?.(goal.id)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </CardContent>

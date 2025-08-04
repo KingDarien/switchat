@@ -118,14 +118,27 @@ const UserGoals: React.FC = () => {
   };
 
   const handleEdit = (goal: Goal) => {
-    // TODO: Implement goal editing
+    if (goal.approval_status === 'approved') {
+      toast({
+        title: "Cannot Edit",
+        description: "Approved goals cannot be edited. You can only delete them.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // TODO: Implement goal editing for non-approved goals
     toast({
       title: "Coming Soon",
       description: "Goal editing functionality will be available soon",
     });
   };
 
-  const deleteGoal = async (goalId: string) => {
+  const handleDelete = async (goalId: string) => {
+    if (!confirm("Are you sure you want to delete this goal? This action cannot be undone. All contributors will be automatically refunded.")) {
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('user_goals')
@@ -136,7 +149,7 @@ const UserGoals: React.FC = () => {
 
       toast({
         title: "Success",
-        description: "Goal deleted successfully. Any contributions will be refunded.",
+        description: "Goal deleted successfully. Any contributions will be refunded automatically.",
       });
 
       fetchGoals();
@@ -205,6 +218,7 @@ const UserGoals: React.FC = () => {
                   isOwner={true}
                   onContribute={() => handleContribute(goal as any)}
                   onEdit={() => handleEdit(goal as any)}
+                  onDelete={handleDelete}
                 />
               ))}
             </div>
