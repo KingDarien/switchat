@@ -126,26 +126,27 @@ const getSizeFromDimensions = (width: number, height: number): PlayerSize => {
 
 const getSizeConfig = (width: number, height: number) => {
   const size = getSizeFromDimensions(width, height);
-  const isVerySmall = width < 120 || height < 140;
-  const coverRatio = isVerySmall ? 0.35 : 0.45; // Smaller cover for tiny sizes
-  const coverHeight = Math.max(30, Math.floor(height * coverRatio));
+  const isVerySmall = width < 140 || height < 160;
+  const coverRatio = isVerySmall ? 0.25 : 0.4; // Much smaller cover for tiny sizes
+  const coverHeight = Math.max(25, Math.floor(height * coverRatio));
   
   switch (size) {
     case 'small':
       return {
-        titleSize: isVerySmall ? 'text-[10px]' : 'text-xs',
-        timeSize: 'text-[10px]',
-        iconSize: 'h-3 w-3',
-        buttonSize: 'h-5 w-5',
-        playButtonSize: 'h-6 w-6',
-        karaokeSize: 'text-[10px]',
+        titleSize: isVerySmall ? 'text-[9px]' : 'text-xs',
+        timeSize: 'text-[9px]',
+        iconSize: isVerySmall ? 'h-2.5 w-2.5' : 'h-3 w-3',
+        buttonSize: isVerySmall ? 'h-4 w-4' : 'h-5 w-5',
+        playButtonSize: isVerySmall ? 'h-5 w-5' : 'h-6 w-6',
+        karaokeSize: 'text-[9px]',
         karaokeIconSize: 'h-2 w-2',
-        padding: 'p-1.5',
+        padding: 'p-1',
         gap: 'gap-y-0.5',
         controlGap: 'gap-0.5',
         coverHeight: `h-[${coverHeight}px]`,
-        showLabels: !isVerySmall,
+        showLabels: false, // Never show labels in small mode
         compactMode: true,
+        showFunctionButtons: true, // Always show function buttons
       };
     case 'medium':
       return {
@@ -162,6 +163,7 @@ const getSizeConfig = (width: number, height: number) => {
         coverHeight: `h-[${coverHeight}px]`,
         showLabels: true,
         compactMode: false,
+        showFunctionButtons: true,
       };
     case 'large':
       return {
@@ -178,6 +180,7 @@ const getSizeConfig = (width: number, height: number) => {
         coverHeight: `h-[${coverHeight}px]`,
         showLabels: true,
         compactMode: false,
+        showFunctionButtons: true,
       };
   }
 };
@@ -357,8 +360,7 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
             >
               {/* Cover */}
               <motion.div 
-                className="bg-white/10 overflow-hidden rounded-[12px] w-full relative mb-2"
-                style={{ height: `${Math.max(50, Math.floor(dimensions.height * 0.4))}px` }}
+                className={cn("bg-white/10 overflow-hidden rounded-[12px] w-full relative mb-1", sizeConfig.coverHeight)}
               >
                 <img
                   src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
