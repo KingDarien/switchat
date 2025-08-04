@@ -24,17 +24,13 @@ const MusicSelector: React.FC<MusicSelectorProps> = ({
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
 
-  const validateAudioUrl = async (audioUrl: string): Promise<boolean> => {
-    return new Promise((resolve) => {
-      const audio = new Audio();
-      audio.onloadedmetadata = () => {
-        resolve(true);
-      };
-      audio.onerror = () => {
-        resolve(false);
-      };
-      audio.src = audioUrl;
-    });
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const handlePreview = async () => {
@@ -47,6 +43,15 @@ const MusicSelector: React.FC<MusicSelectorProps> = ({
       return;
     }
 
+    if (!isValidUrl(url)) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (isPlaying) {
       audioRef.current?.pause();
       setIsPlaying(false);
@@ -54,17 +59,6 @@ const MusicSelector: React.FC<MusicSelectorProps> = ({
     }
 
     setIsLoading(true);
-    
-    const isValid = await validateAudioUrl(url);
-    if (!isValid) {
-      toast({
-        title: "Error",
-        description: "Invalid audio URL. Please check the link and try again.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
 
     if (audioRef.current) {
       audioRef.current.src = url;
@@ -73,29 +67,30 @@ const MusicSelector: React.FC<MusicSelectorProps> = ({
         setIsPlaying(true);
       } catch (error) {
         toast({
-          title: "Error",
-          description: "Could not play audio. Please try a different URL.",
-          variant: "destructive",
+          title: "Preview unavailable",
+          description: "Cannot preview this URL, but it will be saved. Some streaming services don't allow preview.",
+          variant: "default",
         });
       }
     }
     setIsLoading(false);
   };
 
-  const handleSave = async () => {
-    if (url && url !== currentUrl) {
-      const isValid = await validateAudioUrl(url);
-      if (!isValid) {
-        toast({
-          title: "Error",
-          description: "Invalid audio URL. Please check the link and try again.",
-          variant: "destructive",
-        });
-        return;
-      }
+  const handleSave = () => {
+    if (url && !isValidUrl(url)) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid URL",
+        variant: "destructive",
+      });
+      return;
     }
     
     onMusicChange(url, title);
+    toast({
+      title: "Success",
+      description: "Music settings saved!",
+    });
   };
 
   const popularMusicSites = [
