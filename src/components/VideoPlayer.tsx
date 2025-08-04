@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import VideoComments from './VideoComments';
 
 interface Profile {
   user_id: string;
@@ -37,8 +41,13 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [showComments, setShowComments] = useState(false);
   const startY = useRef(0);
   const isDragging = useRef(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     const video = videoRef.current;
@@ -126,6 +135,93 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
     isDragging.current = false;
   };
 
+  const fetchLikes = async () => {
+    try {
+      const { data: likesData, error } = await supabase
+        .from('likes')
+        .select('*')
+        .eq('post_id', post.id);
+
+      if (error) throw error;
+
+      setLikeCount(likesData?.length || 0);
+      
+      if (user) {
+        const userLike = likesData?.find(like => like.user_id === user.id);
+        setIsLiked(!!userLike);
+      }
+    } catch (error) {
+      console.error('Error fetching likes:', error);
+    }
+  };
+
+  const handleLike = async () => {
+    if (!user) return;
+
+    try {
+      if (isLiked) {
+        // Remove like
+        const { error } = await supabase
+          .from('likes')
+          .delete()
+          .eq('post_id', post.id)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        setIsLiked(false);
+        setLikeCount(prev => prev - 1);
+      } else {
+        // Add like
+        const { error } = await supabase
+          .from('likes')
+          .insert({
+            post_id: post.id,
+            user_id: user.id,
+            emoji: '❤️'
+          });
+
+        if (error) throw error;
+        setIsLiked(true);
+        setLikeCount(prev => prev + 1);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update like",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Video by ${post.profiles.display_name || post.profiles.username}`,
+          text: post.content,
+          url: window.location.href,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
+    } else {
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast({
+          title: "Link copied!",
+          description: "Video link copied to clipboard",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to copy link",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   const getVerificationBadge = () => {
     if (!post.profiles.is_verified) return null;
     
@@ -143,6 +239,12 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
       </Badge>
     );
   };
+
+  useEffect(() => {
+    if (isActive) {
+      fetchLikes();
+    }
+  }, [isActive, post.id]);
 
   if (!post.video_url) return null;
 
@@ -215,17 +317,27 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
           {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
         </Button>
         
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-white hover:bg-white/20 p-3 rounded-full"
-        >
-          <Heart className="w-6 h-6" />
-        </Button>
+        <div className="flex flex-col items-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLike}
+            className={cn(
+              "text-white hover:bg-white/20 p-3 rounded-full transition-colors",
+              isLiked && "text-red-500"
+            )}
+          >
+            <Heart className={cn("w-6 h-6", isLiked && "fill-current")} />
+          </Button>
+          {likeCount > 0 && (
+            <span className="text-xs text-white mt-1">{likeCount}</span>
+          )}
+        </div>
         
         <Button
           variant="ghost"
           size="sm"
+          onClick={() => setShowComments(true)}
           className="text-white hover:bg-white/20 p-3 rounded-full"
         >
           <MessageCircle className="w-6 h-6" />
@@ -234,6 +346,7 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
         <Button
           variant="ghost"
           size="sm"
+          onClick={handleShare}
           className="text-white hover:bg-white/20 p-3 rounded-full"
         >
           <Share className="w-6 h-6" />
@@ -251,6 +364,14 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
           ↓
         </div>
       )}
+
+      {/* Comments Modal */}
+      <VideoComments
+        postId={post.id}
+        postAuthorId={post.user_id}
+        isOpen={showComments}
+        onClose={() => setShowComments(false)}
+      />
     </div>
   );
 };

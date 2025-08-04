@@ -3,9 +3,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
-import CommentForm from './CommentForm';
+import { Textarea } from '@/components/ui/textarea';
+import { Trash2, Send } from 'lucide-react';
 import UserDisplayName from './UserDisplayName';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -30,17 +29,18 @@ interface CommentWithProfile extends Comment {
   profiles?: Profile;
 }
 
-interface CommentsProps {
+interface VideoCommentsProps {
   postId: string;
-  commentsCount: number;
-  onCommentsCountChange: (count: number) => void;
-  postAuthorId?: string;
+  postAuthorId: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }: CommentsProps) => {
+const VideoComments = ({ postId, postAuthorId, isOpen, onClose }: VideoCommentsProps) => {
   const [comments, setComments] = useState<CommentWithProfile[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -77,7 +77,6 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
       })) || [];
 
       setComments(commentsWithProfiles);
-      onCommentsCountChange(commentsWithProfiles.length);
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -85,20 +84,38 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
     }
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchComments();
-    }
-  }, [isOpen, postId]);
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim() || !user) return;
 
-  const getInitials = (name: string) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('comments')
+        .insert({
+          content: newComment.trim(),
+          post_id: postId,
+          user_id: user.id,
+        });
+
+      if (error) throw error;
+
+      setNewComment('');
+      fetchComments();
+      
+      toast({
+        title: "Success!",
+        description: "Your comment has been added.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDeleteComment = async (commentId: string) => {
@@ -131,33 +148,53 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
     return user.id === comment.user_id || user.id === postAuthorId;
   };
 
+  const getInitials = (name: string) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchComments();
+    }
+  }, [isOpen, postId]);
+
+  if (!isOpen) return null;
+
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger asChild>
-        <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground">
-          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          <span>{commentsCount} {commentsCount === 1 ? 'comment' : 'comments'}</span>
-        </Button>
-      </CollapsibleTrigger>
-      
-      <CollapsibleContent className="space-y-4 mt-4">
-        <CommentForm postId={postId} onCommentAdded={fetchComments} />
-        
-        {loading ? (
-          <div className="space-y-3">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="animate-pulse flex gap-3">
-                <div className="h-8 w-8 bg-muted rounded-full"></div>
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted rounded w-1/4"></div>
-                  <div className="h-3 bg-muted rounded w-3/4"></div>
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
+      <div className="bg-background w-full h-[70vh] rounded-t-3xl p-6 overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Comments</h3>
+          <Button variant="ghost" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+          {loading ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse flex gap-3">
+                  <div className="h-8 w-8 bg-muted rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-muted rounded w-1/4"></div>
+                    <div className="h-3 bg-muted rounded w-3/4"></div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {comments.map((comment) => {
+              ))}
+            </div>
+          ) : comments.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No comments yet. Be the first to comment!
+            </div>
+          ) : (
+            comments.map((comment) => {
               const displayName = comment.profiles?.display_name || comment.profiles?.username || 'Anonymous';
               const username = comment.profiles?.username || 'user';
               
@@ -170,7 +207,7 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
                     </AvatarFallback>
                   </Avatar>
                   
-                   <div className="flex-1 space-y-1">
+                  <div className="flex-1 space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <UserDisplayName
@@ -200,12 +237,28 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
                   </div>
                 </div>
               );
-            })}
-          </div>
-        )}
-      </CollapsibleContent>
-    </Collapsible>
+            })
+          )}
+        </div>
+
+        <form onSubmit={handleSubmitComment} className="flex gap-2">
+          <Textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Add a comment..."
+            className="flex-1 min-h-[40px] max-h-[100px]"
+          />
+          <Button 
+            type="submit" 
+            disabled={submitting || !newComment.trim()}
+            size="icon"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
+      </div>
+    </div>
   );
 };
 
-export default Comments;
+export default VideoComments;

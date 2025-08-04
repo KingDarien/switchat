@@ -54,10 +54,11 @@ const Feed = () => {
 
   const fetchPosts = async () => {
     try {
-      // First fetch posts
+      // First fetch posts - exclude video posts from regular feed
       let query = supabase
         .from('posts')
         .select('*')
+        .neq('post_type', 'video')
         .order('created_at', { ascending: false });
 
       // Filter by following users if in following mode

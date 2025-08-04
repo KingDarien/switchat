@@ -202,6 +202,9 @@ const GoalReviews = () => {
                 <div className="flex items-start justify-between">
                   <div className="space-y-2">
                     <CardTitle className="text-xl">{goal.title}</CardTitle>
+                    {goal.is_anonymous && (
+                      <Badge variant="outline" className="text-xs">Anonymous Goal</Badge>
+                    )}
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={goal.profiles?.avatar_url} />
@@ -210,7 +213,9 @@ const GoalReviews = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-sm font-medium">{goal.profiles?.display_name || goal.profiles?.username}</p>
+                        <p className="text-sm font-medium">
+                          {goal.is_anonymous ? `Anonymous (${goal.profiles?.display_name || goal.profiles?.username})` : goal.profiles?.display_name || goal.profiles?.username}
+                        </p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span>Trust Score: {goal.profiles?.trust_score || 0}</span>
                           {goal.profiles?.is_verified && (

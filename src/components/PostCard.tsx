@@ -269,6 +269,7 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
           postId={post.id} 
           commentsCount={commentsCount}
           onCommentsCountChange={setCommentsCount}
+          postAuthorId={post.user_id}
         />
       </CardContent>
     </Card>

@@ -28,6 +28,19 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check if user is DarienAdair for unlimited uploads
+      const isDarienAdair = user?.id === '00000000-0000-0000-0000-000000000000';
+      
+      // Check image size (max 50MB for regular users, unlimited for DarienAdair)
+      if (!isDarienAdair && file.size > 50 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image file must be less than 50MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setImage(file);
       setVideo(null);
       setVideoPreview(null);
@@ -41,8 +54,11 @@ const CreatePost = ({ onPostCreated }: CreatePostProps) => {
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check video size (max 50MB)
-      if (file.size > 50 * 1024 * 1024) {
+      // Check if user is DarienAdair for unlimited uploads
+      const isDarienAdair = user?.id === '00000000-0000-0000-0000-000000000000';
+      
+      // Check video size (max 50MB for regular users, unlimited for DarienAdair)
+      if (!isDarienAdair && file.size > 50 * 1024 * 1024) {
         toast({
           title: "Error",
           description: "Video file must be less than 50MB",
