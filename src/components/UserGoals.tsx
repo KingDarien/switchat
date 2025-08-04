@@ -136,7 +136,7 @@ const UserGoals: React.FC = () => {
 
       toast({
         title: "Success",
-        description: "Goal deleted successfully",
+        description: "Goal deleted successfully. Any contributions will be refunded.",
       });
 
       fetchGoals();

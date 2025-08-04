@@ -212,14 +212,16 @@ const GoalCard: React.FC<GoalCardProps> = ({ goal, isOwner = false, onContribute
 
         {isOwner && (
           <div className="flex gap-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              onClick={() => onEdit?.(goal)}
-            >
-              Edit Goal
-            </Button>
+            {goal.approval_status !== 'approved' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => onEdit?.(goal)}
+              >
+                Edit Goal
+              </Button>
+            )}
             {goal.approval_status === 'approved' && (
               <Badge variant="outline" className="text-xs">
                 {goal._count?.goal_contributions || 0} supporters
