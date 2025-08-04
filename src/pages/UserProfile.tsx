@@ -346,7 +346,7 @@ const UserProfile = () => {
                   
                   {/* Background Music Player - positioned right next to profile picture */}
                   {profile.background_music_url && (
-                    <div className="w-64">
+                    <div className="w-64 p-1">
                       <BackgroundMusicPlayer
                         musicUrl={profile.background_music_url}
                         musicTitle={profile.background_music_title}
