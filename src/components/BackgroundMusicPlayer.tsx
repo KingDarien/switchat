@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+
+import React, { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Play,
@@ -65,57 +66,6 @@ const CustomSlider = ({
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       />
     </motion.div>
-  );
-};
-
-const ResizeHandle = ({ 
-  direction, 
-  onResize,
-  className = ""
-}: { 
-  direction: 'top' | 'bottom' | 'left' | 'right';
-  onResize: (deltaX: number, deltaY: number) => void;
-  className?: string;
-}) => {
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    const startX = e.clientX;
-    const startY = e.clientY;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const deltaX = e.clientX - startX;
-      const deltaY = e.clientY - startY;
-      onResize(deltaX, deltaY);
-    };
-
-    const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [onResize]);
-
-  const getHandleClasses = () => {
-    const base = "absolute bg-white/20 hover:bg-white/40 transition-colors z-10";
-    switch (direction) {
-      case 'top':
-        return `${base} top-0 left-0 right-0 h-1 cursor-ns-resize`;
-      case 'bottom':
-        return `${base} bottom-0 left-0 right-0 h-1 cursor-ns-resize`;
-      case 'left':
-        return `${base} left-0 top-0 bottom-0 w-1 cursor-ew-resize`;
-      case 'right':
-        return `${base} right-0 top-0 bottom-0 w-1 cursor-ew-resize`;
-    }
-  };
-
-  return (
-    <div
-      className={cn(getHandleClasses(), className)}
-      onMouseDown={handleMouseDown}
-    />
   );
 };
 
@@ -202,18 +152,11 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   const [showLyrics, setShowLyrics] = useState(false);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   
-  // Custom dimensions state
-  const [dimensions, setDimensions] = useState(() => {
-    const saved = localStorage.getItem('musicPlayerDimensions');
-    return saved ? JSON.parse(saved) : { width: 110, height: 160 };
-  });
+  // Fixed dimensions - no longer adjustable
+  const dimensions = { width: 110, height: 160 };
 
   const sizeConfig = getSizeConfig(dimensions.width, dimensions.height);
   const size = getSizeFromDimensions(dimensions.width, dimensions.height);
-
-  useEffect(() => {
-    localStorage.setItem('musicPlayerDimensions', JSON.stringify(dimensions));
-  }, [dimensions]);
 
   // Use provided lyrics or default message for instrumental music
   const lyrics = providedLyrics || [
@@ -267,43 +210,9 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   };
 
   const cycleSizeUp = () => {
-    const sizeMap = {
-      small: { width: 180, height: 220 },
-      medium: { width: 250, height: 280 },
-      large: { width: 110, height: 160 }
-    };
-    setDimensions(sizeMap[size]);
+    // Size cycling is now disabled but button remains for UI consistency
+    console.log('Size adjustment disabled');
   };
-
-  const handleResize = useCallback((direction: string) => (deltaX: number, deltaY: number) => {
-    setDimensions(prev => {
-      let newWidth = prev.width;
-      let newHeight = prev.height;
-      
-      // Apply size constraints
-      const minWidth = 80;
-      const maxWidth = 400;
-      const minHeight = 120;
-      const maxHeight = 600;
-
-      switch (direction) {
-        case 'right':
-          newWidth = Math.min(Math.max(prev.width + deltaX, minWidth), maxWidth);
-          break;
-        case 'left':
-          newWidth = Math.min(Math.max(prev.width - deltaX, minWidth), maxWidth);
-          break;
-        case 'bottom':
-          newHeight = Math.min(Math.max(prev.height + deltaY, minHeight), maxHeight);
-          break;
-        case 'top':
-          newHeight = Math.min(Math.max(prev.height - deltaY, minHeight), maxHeight);
-          break;
-      }
-
-      return { width: newWidth, height: newHeight };
-    });
-  }, []);
 
   if (!musicUrl) return null;
 
@@ -316,9 +225,7 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
         )}
         style={{ 
           width: `${dimensions.width}px`, 
-          height: `${dimensions.height}px`,
-          minWidth: '80px',
-          minHeight: '120px'
+          height: `${dimensions.height}px`
         }}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -330,12 +237,6 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
         }}
         layout
       >
-        {/* Resize Handles */}
-        <ResizeHandle direction="top" onResize={handleResize('top')} />
-        <ResizeHandle direction="bottom" onResize={handleResize('bottom')} />
-        <ResizeHandle direction="left" onResize={handleResize('left')} />
-        <ResizeHandle direction="right" onResize={handleResize('right')} />
-
         <audio
           ref={audioRef}
           onTimeUpdate={handleTimeUpdate}
@@ -480,23 +381,21 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                     {sizeConfig.showLabels && "Karaoke"}
                   </motion.button>
 
-                  {/* Size Control Button */}
+                  {/* Size Control Button (now disabled but remains for UI consistency) */}
                   <motion.button
                     onClick={cycleSizeUp}
                     className={cn(
-                      "flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-all duration-300",
+                      "flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-all duration-300 opacity-50 cursor-not-allowed",
                       sizeConfig.compactMode 
                         ? `${sizeConfig.buttonSize} p-0` 
                         : `gap-1 px-2 py-1 ${sizeConfig.karaokeSize}`
                     )}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    title={`Current: ${size}. Click to resize.`}
+                    title="Size adjustment disabled"
                   >
-                    {size === 'small' && <Maximize2 className={sizeConfig.karaokeIconSize} />}
-                    {size === 'medium' && <Maximize2 className={sizeConfig.karaokeIconSize} />}
-                    {size === 'large' && <Minimize2 className={sizeConfig.karaokeIconSize} />}
-                    {sizeConfig.showLabels && size.charAt(0).toUpperCase() + size.slice(1)}
+                    <Minimize2 className={sizeConfig.karaokeIconSize} />
+                    {sizeConfig.showLabels && "Fixed"}
                   </motion.button>
                 </motion.div>
               </motion.div>
