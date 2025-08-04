@@ -15,6 +15,7 @@ import UserDisplayName from '@/components/UserDisplayName';
 import { BackgroundMusicPlayer } from '@/components/BackgroundMusicPlayer';
 import { ProfileStats } from '@/components/ProfileStats';
 import UserGoals from '@/components/UserGoals';
+import ClosestFriends from '@/components/ClosestFriends';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Profile {
@@ -337,12 +338,15 @@ const UserProfile = () => {
             <CardHeader>
               <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
-                  <Avatar className="h-32 w-32 border-4 border-primary/20 flex-shrink-0">
-                    <AvatarImage src={profile.avatar_url} />
-                    <AvatarFallback className="text-2xl">
-                      {getInitials(displayName)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="flex flex-col items-center">
+                    <Avatar className="h-32 w-32 border-4 border-primary/20 flex-shrink-0">
+                      <AvatarImage src={profile.avatar_url} />
+                      <AvatarFallback className="text-2xl">
+                        {getInitials(displayName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <ClosestFriends userId={userId!} />
+                  </div>
                   
                   {/* Background Music Player - responsive width */}
                   {profile.background_music_url && (
