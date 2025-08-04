@@ -85,7 +85,7 @@ const FriendAvatar = ({
         transition={{ type: "spring", stiffness: 200, damping: 15 }}
         className="relative"
       >
-        <Avatar className="h-6 w-6 border border-border">
+        <Avatar className="h-8 w-8 border border-border">
           <AvatarImage src={friend.avatar_url} />
           <AvatarFallback className="text-xs">
             {getInitials(friend.display_name || friend.username)}
@@ -148,28 +148,31 @@ const ClosestFriends = ({
   const remainingCount = friends.length - maxVisible;
 
   return (
-    <div className={cn("flex items-center justify-center mt-2", className)}>
-      {visibleFriends.map((friend, index) => (
-        <FriendAvatar
-          key={friend.user_id}
-          friend={friend}
-          index={index}
-          totalFriends={visibleFriends.length}
-          isHovered={hoveredIndex === friend.user_id}
-          onHover={() => setHoveredIndex(friend.user_id)}
-          onLeave={() => setHoveredIndex(null)}
-        />
-      ))}
+    <div className={cn("flex flex-col items-center mt-2", className)}>
+      <p className="text-xs text-muted-foreground mb-1">Top Circle</p>
+      <div className="flex items-center justify-center">
+        {visibleFriends.map((friend, index) => (
+          <FriendAvatar
+            key={friend.user_id}
+            friend={friend}
+            index={index}
+            totalFriends={visibleFriends.length}
+            isHovered={hoveredIndex === friend.user_id}
+            onHover={() => setHoveredIndex(friend.user_id)}
+            onLeave={() => setHoveredIndex(null)}
+          />
+        ))}
 
-      {remainingCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex items-center justify-center rounded-full border border-border bg-muted text-muted-foreground font-medium h-6 w-6 text-xs ml-[-0.25rem]"
-        >
-          +{remainingCount}
-        </motion.div>
-      )}
+        {remainingCount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center justify-center rounded-full border border-border bg-muted text-muted-foreground font-medium h-8 w-8 text-xs ml-[-0.25rem]"
+          >
+            +{remainingCount}
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };
