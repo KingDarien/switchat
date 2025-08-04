@@ -330,26 +330,31 @@ const UserProfile = () => {
       <div className="relative z-10">
         <Navbar />
         
-        {/* Background Music Player */}
-        {profile.background_music_url && (
-          <BackgroundMusicPlayer
-            musicUrl={profile.background_music_url}
-            musicTitle={profile.background_music_title}
-            autoPlay={true}
-          />
-        )}
 
         <div className="max-w-4xl mx-auto p-4 pb-20 space-y-6">
           {/* Profile Header */}
           <Card className="bg-card/90 backdrop-blur-sm border border-border/50">
             <CardHeader>
               <div className="flex flex-col md:flex-row items-start gap-6">
-                <Avatar className="h-32 w-32 border-4 border-primary/20">
-                  <AvatarImage src={profile.avatar_url} />
-                  <AvatarFallback className="text-2xl">
-                    {getInitials(displayName)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="flex flex-col items-center gap-4">
+                  <Avatar className="h-32 w-32 border-4 border-primary/20">
+                    <AvatarImage src={profile.avatar_url} />
+                    <AvatarFallback className="text-2xl">
+                      {getInitials(displayName)}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  {/* Background Music Player */}
+                  {profile.background_music_url && (
+                    <div className="w-full max-w-[200px]">
+                      <BackgroundMusicPlayer
+                        musicUrl={profile.background_music_url}
+                        musicTitle={profile.background_music_title}
+                        autoPlay={true}
+                      />
+                    </div>
+                  )}
+                </div>
                 
                 <div className="flex-1 space-y-4">
                   <div>

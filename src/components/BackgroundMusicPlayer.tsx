@@ -116,7 +116,7 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   if (!musicUrl) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-card/90 backdrop-blur-sm border rounded-lg p-3 shadow-lg max-w-xs z-50">
+    <div className="bg-card/90 backdrop-blur-sm border rounded-lg p-3 shadow-sm">
       <audio
         ref={audioRef}
         src={musicUrl}
