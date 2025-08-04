@@ -375,7 +375,7 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
                     onClick={() => handleEmojiSelect({ emoji })}
                     className={`text-sm h-8 px-3 rounded-full transition-all duration-200 ${
                       userReaction === emoji 
-                        ? 'bg-primary/10 text-primary border border-primary/20 scale-105 animate-pulse' 
+                        ? 'bg-primary/10 text-primary border border-primary/20 scale-105' 
                         : 'text-muted-foreground hover:text-primary hover:bg-primary/5 hover:scale-105'
                     }`}
                   >

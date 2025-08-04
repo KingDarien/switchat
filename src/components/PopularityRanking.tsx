@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Trophy, TrendingUp, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import UserDisplayName from '@/components/UserDisplayName';
 
 interface Profile {
   user_id: string;
@@ -15,6 +16,8 @@ interface Profile {
   popularity_score: number;
   current_rank: number;
   niche_id: string;
+  is_verified: boolean;
+  verification_tier: string;
   niches?: {
     name: string;
     icon: string;
@@ -179,17 +182,25 @@ const PopularityRanking = () => {
                 <AvatarImage src={userRank?.avatar_url} />
                 <AvatarFallback>{getInitials(userRank?.display_name || '')}</AvatarFallback>
               </Avatar>
-              <div>
-                <p className="font-semibold">{userRank?.display_name}</p>
+              <UserDisplayName
+                displayName={userRank?.display_name || 'Anonymous'}
+                username={userRank?.username || 'user'}
+                userId={userRank?.user_id}
+                rank={userRank?.current_rank}
+                isVerified={userRank?.is_verified}
+                verificationTier={userRank?.verification_tier}
+                variant="vertical"
+                size="md"
+                clickable={false}
+              />
+              {userRank?.niches?.name && (
                 <p className="text-sm text-muted-foreground">
-                  {userRank?.niches?.name && (
-                    <span className="flex items-center gap-1">
-                      <span>{userRank.niches.icon}</span>
-                      {userRank.niches.name}
-                    </span>
-                  )}
+                  <span className="flex items-center gap-1">
+                    <span>{userRank.niches.icon}</span>
+                    {userRank.niches.name}
+                  </span>
                 </p>
-              </div>
+              )}
             </div>
             <Badge variant="secondary" className="text-lg font-bold">
               {getRankDisplay(userRank?.current_rank || null)}
@@ -253,15 +264,24 @@ const PopularityRanking = () => {
                     <AvatarFallback>{getInitials((profileUpdates[profile.user_id] || profile).display_name || '')}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">{(profileUpdates[profile.user_id] || profile).display_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {profile.niches?.name && (
+                    <UserDisplayName
+                      displayName={(profileUpdates[profile.user_id] || profile).display_name || 'Anonymous'}
+                      username={(profileUpdates[profile.user_id] || profile).username || 'user'}
+                      userId={profile.user_id}
+                      rank={profile.current_rank}
+                      isVerified={(profileUpdates[profile.user_id] || profile).is_verified}
+                      verificationTier={(profileUpdates[profile.user_id] || profile).verification_tier}
+                      variant="compact"
+                      size="sm"
+                    />
+                    {profile.niches?.name && (
+                      <p className="text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <span>{profile.niches.icon}</span>
                           {profile.niches.name}
                         </span>
-                      )}
-                    </p>
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="text-right">

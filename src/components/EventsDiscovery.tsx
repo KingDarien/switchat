@@ -9,6 +9,7 @@ import { Calendar, MapPin, Users, Clock, Plus, Search, Filter } from 'lucide-rea
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import UserDisplayName from '@/components/UserDisplayName';
 
 interface Event {
   id: string;
@@ -29,6 +30,9 @@ interface Event {
   profiles?: {
     display_name: string | null;
     avatar_url: string | null;
+    username: string;
+    is_verified: boolean;
+    verification_tier: string;
   } | null;
   attendee_count?: number;
   user_status?: 'going' | 'interested' | null;
@@ -52,7 +56,7 @@ const EventsDiscovery = () => {
         .from('events')
         .select(`
           *,
-          profiles!events_creator_id_fkey (display_name, avatar_url)
+          profiles!events_creator_id_fkey (display_name, avatar_url, username, is_verified, verification_tier)
         `)
         .eq('is_published', true)
         .gte('start_date', new Date().toISOString())
@@ -295,9 +299,15 @@ const EventsDiscovery = () => {
                           {getInitials(event.profiles?.display_name || '')}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm text-muted-foreground">
-                        by {event.profiles?.display_name}
-                      </span>
+                      <UserDisplayName
+                        displayName={event.profiles?.display_name || 'Anonymous'}
+                        username="creator"
+                        userId={event.creator_id}
+                        variant="compact"
+                        size="sm"
+                        showRank={false}
+                        showVerification={true}
+                      />
                       <div className="flex-1"></div>
                       {!event.is_free && (
                         <Badge variant="outline">
