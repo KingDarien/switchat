@@ -70,16 +70,15 @@ const CustomSlider = ({
 };
 
 const getSizeFromDimensions = (width: number, height: number): PlayerSize => {
-  if (width <= 130 || height <= 120) return 'small';
-  if (width <= 200 || height <= 180) return 'medium';
+  if (width <= 130) return 'small';
+  if (width <= 200) return 'medium';
   return 'large';
 };
 
 const getSizeConfig = (width: number, height: number) => {
   const size = getSizeFromDimensions(width, height);
-  const isVerySmall = width < 140 || height < 160;
-  const coverRatio = isVerySmall ? 0.25 : 0.4; // Much smaller cover for tiny sizes
-  const coverHeight = Math.max(25, Math.floor(height * coverRatio));
+  const isVerySmall = width < 140;
+  const coverHeight = isVerySmall ? 30 : width < 200 ? 40 : 50;
   
   switch (size) {
     case 'small':
@@ -152,12 +151,12 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   const [showLyrics, setShowLyrics] = useState(false);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   
-  // Adjustable dimensions
-  const [dimensions, setDimensions] = useState({ width: 320, height: 400 });
+  // Adjustable dimensions - only track width, let height be auto
+  const [dimensions, setDimensions] = useState({ width: 320 });
   const [isResizing, setIsResizing] = useState(false);
 
-  const sizeConfig = getSizeConfig(dimensions.width, dimensions.height);
-  const size = getSizeFromDimensions(dimensions.width, dimensions.height);
+  const sizeConfig = getSizeConfig(dimensions.width, 0);
+  const size = getSizeFromDimensions(dimensions.width, 0);
 
   // Use provided lyrics or default message for instrumental music
   const lyrics = providedLyrics || [
@@ -211,15 +210,10 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   };
 
   const cycleSizeUp = () => {
-    const sizes = [
-      { width: 320, height: 400 },
-      { width: 250, height: 320 },
-      { width: 180, height: 240 },
-      { width: 110, height: 160 }
-    ];
-    const currentIndex = sizes.findIndex(s => s.width === dimensions.width && s.height === dimensions.height);
-    const nextIndex = (currentIndex + 1) % sizes.length;
-    setDimensions(sizes[nextIndex]);
+    const widths = [320, 250, 180, 110];
+    const currentIndex = widths.indexOf(dimensions.width);
+    const nextIndex = (currentIndex + 1) % widths.length;
+    setDimensions({ width: widths[nextIndex] });
   };
 
   const handleMouseDown = (e: React.MouseEvent, direction: 'se' | 'sw' | 'ne' | 'nw') => {
@@ -227,13 +221,10 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
     setIsResizing(true);
     
     const startX = e.clientX;
-    const startY = e.clientY;
     const startWidth = dimensions.width;
-    const startHeight = dimensions.height;
     
     const handleMouseMove = (e: MouseEvent) => {
       let newWidth = startWidth;
-      let newHeight = startHeight;
       
       if (direction.includes('e')) {
         newWidth = Math.max(110, startWidth + (e.clientX - startX));
@@ -241,26 +232,9 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
       if (direction.includes('w')) {
         newWidth = Math.max(110, startWidth - (e.clientX - startX));
       }
-      if (direction.includes('s')) {
-        newHeight = Math.max(160, startHeight + (e.clientY - startY));
-      }
-      if (direction.includes('n')) {
-        newHeight = Math.max(160, startHeight - (e.clientY - startY));
-      }
-      
-      // Maintain aspect ratio approximately
-      const aspectRatio = 0.8; // width/height
-      if (Math.abs(newWidth / newHeight - aspectRatio) > 0.1) {
-        if (direction.includes('e') || direction.includes('w')) {
-          newHeight = newWidth / aspectRatio;
-        } else {
-          newWidth = newHeight * aspectRatio;
-        }
-      }
       
       setDimensions({ 
-        width: Math.min(400, Math.max(110, Math.round(newWidth))),
-        height: Math.min(500, Math.max(160, Math.round(newHeight)))
+        width: Math.min(400, Math.max(110, Math.round(newWidth)))
       });
     };
     
@@ -284,8 +258,7 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
           sizeConfig.padding
         )}
         style={{ 
-          width: `${dimensions.width}px`, 
-          height: `${dimensions.height}px`
+          width: `${dimensions.width}px`
         }}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
