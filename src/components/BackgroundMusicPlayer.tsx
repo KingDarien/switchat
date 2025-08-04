@@ -15,8 +15,14 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   autoPlay = false
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.3);
-  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(() => {
+    const saved = localStorage.getItem('profile-music-volume');
+    return saved ? parseFloat(saved) : 0.3;
+  });
+  const [isMuted, setIsMuted] = useState(() => {
+    const saved = localStorage.getItem('profile-music-muted');
+    return saved === 'true';
+  });
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -92,12 +98,19 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    localStorage.setItem('profile-music-muted', newMuted.toString());
   };
 
   const handleVolumeChange = (value: number[]) => {
-    setVolume(value[0]);
-    if (isMuted) setIsMuted(false);
+    const newVolume = value[0];
+    setVolume(newVolume);
+    localStorage.setItem('profile-music-volume', newVolume.toString());
+    if (isMuted) {
+      setIsMuted(false);
+      localStorage.setItem('profile-music-muted', 'false');
+    }
   };
 
   if (!musicUrl) return null;
