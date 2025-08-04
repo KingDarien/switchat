@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Play,
@@ -67,12 +67,71 @@ const CustomSlider = ({
   );
 };
 
-const getSizeConfig = (size: PlayerSize) => {
+const ResizeHandle = ({ 
+  direction, 
+  onResize,
+  className = ""
+}: { 
+  direction: 'top' | 'bottom' | 'left' | 'right';
+  onResize: (deltaX: number, deltaY: number) => void;
+  className?: string;
+}) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+      onResize(deltaX, deltaY);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [onResize]);
+
+  const getHandleClasses = () => {
+    const base = "absolute bg-white/20 hover:bg-white/40 transition-colors z-10";
+    switch (direction) {
+      case 'top':
+        return `${base} top-0 left-0 right-0 h-1 cursor-ns-resize`;
+      case 'bottom':
+        return `${base} bottom-0 left-0 right-0 h-1 cursor-ns-resize`;
+      case 'left':
+        return `${base} left-0 top-0 bottom-0 w-1 cursor-ew-resize`;
+      case 'right':
+        return `${base} right-0 top-0 bottom-0 w-1 cursor-ew-resize`;
+    }
+  };
+
+  return (
+    <div
+      className={cn(getHandleClasses(), className)}
+      onMouseDown={handleMouseDown}
+    />
+  );
+};
+
+const getSizeFromDimensions = (width: number, height: number): PlayerSize => {
+  if (width <= 130 || height <= 120) return 'small';
+  if (width <= 200 || height <= 180) return 'medium';
+  return 'large';
+};
+
+const getSizeConfig = (width: number, height: number) => {
+  const size = getSizeFromDimensions(width, height);
+  const coverRatio = 0.6; // Cover takes 60% of height
+  const coverHeight = Math.max(50, Math.floor(height * coverRatio));
+  
   switch (size) {
     case 'small':
       return {
-        width: 'w-[110px]',
-        coverHeight: 'h-[70px]',
         titleSize: 'text-xs',
         timeSize: 'text-xs',
         iconSize: 'h-3 w-3',
@@ -83,11 +142,10 @@ const getSizeConfig = (size: PlayerSize) => {
         padding: 'p-2',
         gap: 'gap-y-1',
         controlGap: 'gap-1',
+        coverHeight: `h-[${coverHeight}px]`,
       };
     case 'medium':
       return {
-        width: 'w-[180px]',
-        coverHeight: 'h-[120px]',
         titleSize: 'text-sm',
         timeSize: 'text-sm',
         iconSize: 'h-4 w-4',
@@ -98,11 +156,10 @@ const getSizeConfig = (size: PlayerSize) => {
         padding: 'p-3',
         gap: 'gap-y-2',
         controlGap: 'gap-2',
+        coverHeight: `h-[${coverHeight}px]`,
       };
     case 'large':
       return {
-        width: 'w-[250px]',
-        coverHeight: 'h-[170px]',
         titleSize: 'text-base',
         timeSize: 'text-sm',
         iconSize: 'h-5 w-5',
@@ -113,6 +170,7 @@ const getSizeConfig = (size: PlayerSize) => {
         padding: 'p-4',
         gap: 'gap-y-3',
         controlGap: 'gap-3',
+        coverHeight: `h-[${coverHeight}px]`,
       };
   }
 };
@@ -131,16 +189,19 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   const [isRepeat, setIsRepeat] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
-  const [size, setSize] = useState<PlayerSize>(() => {
-    const saved = localStorage.getItem('musicPlayerSize');
-    return (saved as PlayerSize) || 'small';
+  
+  // Custom dimensions state
+  const [dimensions, setDimensions] = useState(() => {
+    const saved = localStorage.getItem('musicPlayerDimensions');
+    return saved ? JSON.parse(saved) : { width: 110, height: 160 };
   });
 
-  const sizeConfig = getSizeConfig(size);
+  const sizeConfig = getSizeConfig(dimensions.width, dimensions.height);
+  const size = getSizeFromDimensions(dimensions.width, dimensions.height);
 
   useEffect(() => {
-    localStorage.setItem('musicPlayerSize', size);
-  }, [size]);
+    localStorage.setItem('musicPlayerDimensions', JSON.stringify(dimensions));
+  }, [dimensions]);
 
   const lyrics: LyricLine[] = [
     { time: 0, text: "Welcome to the beat" },
@@ -200,11 +261,43 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   };
 
   const cycleSizeUp = () => {
-    const sizes: PlayerSize[] = ['small', 'medium', 'large'];
-    const currentIndex = sizes.indexOf(size);
-    const nextIndex = (currentIndex + 1) % sizes.length;
-    setSize(sizes[nextIndex]);
+    const sizeMap = {
+      small: { width: 180, height: 220 },
+      medium: { width: 250, height: 280 },
+      large: { width: 110, height: 160 }
+    };
+    setDimensions(sizeMap[size]);
   };
+
+  const handleResize = useCallback((direction: string) => (deltaX: number, deltaY: number) => {
+    setDimensions(prev => {
+      let newWidth = prev.width;
+      let newHeight = prev.height;
+      
+      // Apply size constraints
+      const minWidth = 80;
+      const maxWidth = 400;
+      const minHeight = 120;
+      const maxHeight = 600;
+
+      switch (direction) {
+        case 'right':
+          newWidth = Math.min(Math.max(prev.width + deltaX, minWidth), maxWidth);
+          break;
+        case 'left':
+          newWidth = Math.min(Math.max(prev.width - deltaX, minWidth), maxWidth);
+          break;
+        case 'bottom':
+          newHeight = Math.min(Math.max(prev.height + deltaY, minHeight), maxHeight);
+          break;
+        case 'top':
+          newHeight = Math.min(Math.max(prev.height - deltaY, minHeight), maxHeight);
+          break;
+      }
+
+      return { width: newWidth, height: newHeight };
+    });
+  }, []);
 
   if (!musicUrl) return null;
 
@@ -212,10 +305,15 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
     <AnimatePresence mode="wait">
       <motion.div
         className={cn(
-          "relative flex flex-col mx-auto rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900/90 via-blue-900/90 to-indigo-900/90 shadow-[0_0_20px_rgba(139,69,255,0.3)] backdrop-blur-sm h-auto",
-          sizeConfig.width,
+          "relative flex flex-col mx-auto rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900/90 via-blue-900/90 to-indigo-900/90 shadow-[0_0_20px_rgba(139,69,255,0.3)] backdrop-blur-sm select-none",
           sizeConfig.padding
         )}
+        style={{ 
+          width: `${dimensions.width}px`, 
+          height: `${dimensions.height}px`,
+          minWidth: '80px',
+          minHeight: '120px'
+        }}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
@@ -226,6 +324,12 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
         }}
         layout
       >
+        {/* Resize Handles */}
+        <ResizeHandle direction="top" onResize={handleResize('top')} />
+        <ResizeHandle direction="bottom" onResize={handleResize('bottom')} />
+        <ResizeHandle direction="left" onResize={handleResize('left')} />
+        <ResizeHandle direction="right" onResize={handleResize('right')} />
+
         <audio
           ref={audioRef}
           onTimeUpdate={handleTimeUpdate}
@@ -245,7 +349,10 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
               layout
             >
               {/* Cover */}
-              <motion.div className={cn("bg-white/10 overflow-hidden rounded-[12px] w-full relative mb-2", sizeConfig.coverHeight)}>
+              <motion.div 
+                className="bg-white/10 overflow-hidden rounded-[12px] w-full relative mb-2"
+                style={{ height: `${Math.max(50, Math.floor(dimensions.height * 0.4))}px` }}
+              >
                 <img
                   src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                   alt="cover"
