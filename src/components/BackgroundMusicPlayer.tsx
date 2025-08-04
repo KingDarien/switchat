@@ -2,13 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-
 interface BackgroundMusicPlayerProps {
   musicUrl?: string;
   musicTitle?: string;
   autoPlay?: boolean;
 }
-
 export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   musicUrl,
   musicTitle,
@@ -26,7 +24,6 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
@@ -45,7 +42,6 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
         }
       }
     };
-
     checkForPriorInteraction();
   }, [autoPlay, musicUrl]);
 
@@ -58,23 +54,25 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
         attemptAutoPlay();
       }
     };
-
     if (!hasUserInteracted) {
-      document.addEventListener('click', handleUserInteraction, { once: true });
-      document.addEventListener('keydown', handleUserInteraction, { once: true });
-      document.addEventListener('touchstart', handleUserInteraction, { once: true });
+      document.addEventListener('click', handleUserInteraction, {
+        once: true
+      });
+      document.addEventListener('keydown', handleUserInteraction, {
+        once: true
+      });
+      document.addEventListener('touchstart', handleUserInteraction, {
+        once: true
+      });
     }
-
     return () => {
       document.removeEventListener('click', handleUserInteraction);
       document.removeEventListener('keydown', handleUserInteraction);
       document.removeEventListener('touchstart', handleUserInteraction);
     };
   }, [autoPlay, musicUrl, hasUserInteracted, isPlaying]);
-
   const attemptAutoPlay = async () => {
     if (!audioRef.current || !musicUrl) return;
-    
     try {
       await audioRef.current.play();
       setIsPlaying(true);
@@ -84,10 +82,8 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
       setLoadError(true);
     }
   };
-
   const togglePlayPause = () => {
     if (!audioRef.current || !musicUrl) return;
-
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
@@ -96,13 +92,11 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
       setIsPlaying(true);
     }
   };
-
   const toggleMute = () => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
     localStorage.setItem('profile-music-muted', newMuted.toString());
   };
-
   const handleVolumeChange = (value: number[]) => {
     const newVolume = value[0];
     setVolume(newVolume);
@@ -112,27 +106,12 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
       localStorage.setItem('profile-music-muted', 'false');
     }
   };
-
   if (!musicUrl) return null;
-
-  return (
-    <div className="bg-card/90 backdrop-blur-sm border rounded-lg p-3 shadow-sm">
-      <audio
-        ref={audioRef}
-        src={musicUrl}
-        loop
-        onEnded={() => setIsPlaying(false)}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      />
+  return <div className="backdrop-blur-sm border p-3 shadow-sm bg-slate-50 rounded-sm">
+      <audio ref={audioRef} src={musicUrl} loop onEnded={() => setIsPlaying(false)} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} />
       
       <div className="flex items-center gap-2 mb-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={togglePlayPause}
-          className="h-8 w-8 p-0"
-        >
+        <Button variant="ghost" size="sm" onClick={togglePlayPause} className="h-8 w-8 p-0">
           {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         </Button>
         
@@ -144,23 +123,11 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
       </div>
       
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleMute}
-          className="h-6 w-6 p-0"
-        >
+        <Button variant="ghost" size="sm" onClick={toggleMute} className="h-6 w-6 p-0">
           {isMuted ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
         </Button>
         
-        <Slider
-          value={[isMuted ? 0 : volume]}
-          onValueChange={handleVolumeChange}
-          max={1}
-          step={0.1}
-          className="flex-1"
-        />
+        <Slider value={[isMuted ? 0 : volume]} onValueChange={handleVolumeChange} max={1} step={0.1} className="flex-1" />
       </div>
-    </div>
-  );
+    </div>;
 };
