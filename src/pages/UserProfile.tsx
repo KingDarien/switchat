@@ -336,17 +336,17 @@ const UserProfile = () => {
           <Card className="bg-card/90 backdrop-blur-sm border border-border/50">
             <CardHeader>
               <div className="flex flex-col md:flex-row items-start gap-6">
-                <div className="flex items-center gap-6">
-                  <Avatar className="h-32 w-32 border-4 border-primary/20">
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+                  <Avatar className="h-32 w-32 border-4 border-primary/20 flex-shrink-0">
                     <AvatarImage src={profile.avatar_url} />
                     <AvatarFallback className="text-2xl">
                       {getInitials(displayName)}
                     </AvatarFallback>
                   </Avatar>
                   
-                  {/* Background Music Player - positioned right next to profile picture */}
+                  {/* Background Music Player - responsive width */}
                   {profile.background_music_url && (
-                    <div className="w-80 p-1">
+                    <div className="w-full max-w-xs sm:max-w-sm md:w-80 p-1 min-w-0">
                       <BackgroundMusicPlayer
                         musicUrl={profile.background_music_url}
                         musicTitle={profile.background_music_title}
