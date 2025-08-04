@@ -672,6 +672,9 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          background_music_title: string | null
+          background_music_url: string | null
+          background_theme: Json | null
           ban_reason: string | null
           banned_at: string | null
           banned_by: string | null
@@ -680,8 +683,10 @@ export type Database = {
           created_at: string
           current_rank: number | null
           display_name: string | null
+          ethnicity: string | null
           goals_completed: number | null
           id: string
+          interests: string[] | null
           is_protected: boolean | null
           is_verified: boolean | null
           last_login_at: string | null
@@ -702,6 +707,9 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          background_music_title?: string | null
+          background_music_url?: string | null
+          background_theme?: Json | null
           ban_reason?: string | null
           banned_at?: string | null
           banned_by?: string | null
@@ -710,8 +718,10 @@ export type Database = {
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
+          ethnicity?: string | null
           goals_completed?: number | null
           id?: string
+          interests?: string[] | null
           is_protected?: boolean | null
           is_verified?: boolean | null
           last_login_at?: string | null
@@ -732,6 +742,9 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          background_music_title?: string | null
+          background_music_url?: string | null
+          background_theme?: Json | null
           ban_reason?: string | null
           banned_at?: string | null
           banned_by?: string | null
@@ -740,8 +753,10 @@ export type Database = {
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
+          ethnicity?: string | null
           goals_completed?: number | null
           id?: string
+          interests?: string[] | null
           is_protected?: boolean | null
           is_verified?: boolean | null
           last_login_at?: string | null
