@@ -9,6 +9,8 @@ import {
   Repeat,
   Music,
   Mic,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -17,6 +19,8 @@ interface LyricLine {
   time: number;
   text: string;
 }
+
+type PlayerSize = 'small' | 'medium' | 'large';
 
 interface BackgroundMusicPlayerProps {
   musicUrl?: string;
@@ -63,6 +67,56 @@ const CustomSlider = ({
   );
 };
 
+const getSizeConfig = (size: PlayerSize) => {
+  switch (size) {
+    case 'small':
+      return {
+        width: 'w-[110px]',
+        coverHeight: 'h-[70px]',
+        titleSize: 'text-xs',
+        timeSize: 'text-xs',
+        iconSize: 'h-3 w-3',
+        buttonSize: 'h-6 w-6',
+        playButtonSize: 'h-7 w-7',
+        karaokeSize: 'text-xs',
+        karaokeIconSize: 'h-2 w-2',
+        padding: 'p-2',
+        gap: 'gap-y-1',
+        controlGap: 'gap-1',
+      };
+    case 'medium':
+      return {
+        width: 'w-[180px]',
+        coverHeight: 'h-[120px]',
+        titleSize: 'text-sm',
+        timeSize: 'text-sm',
+        iconSize: 'h-4 w-4',
+        buttonSize: 'h-8 w-8',
+        playButtonSize: 'h-10 w-10',
+        karaokeSize: 'text-sm',
+        karaokeIconSize: 'h-3 w-3',
+        padding: 'p-3',
+        gap: 'gap-y-2',
+        controlGap: 'gap-2',
+      };
+    case 'large':
+      return {
+        width: 'w-[250px]',
+        coverHeight: 'h-[170px]',
+        titleSize: 'text-base',
+        timeSize: 'text-sm',
+        iconSize: 'h-5 w-5',
+        buttonSize: 'h-10 w-10',
+        playButtonSize: 'h-12 w-12',
+        karaokeSize: 'text-sm',
+        karaokeIconSize: 'h-4 w-4',
+        padding: 'p-4',
+        gap: 'gap-y-3',
+        controlGap: 'gap-3',
+      };
+  }
+};
+
 export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   musicUrl,
   musicTitle,
@@ -77,6 +131,16 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   const [isRepeat, setIsRepeat] = useState(false);
   const [showLyrics, setShowLyrics] = useState(false);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
+  const [size, setSize] = useState<PlayerSize>(() => {
+    const saved = localStorage.getItem('musicPlayerSize');
+    return (saved as PlayerSize) || 'small';
+  });
+
+  const sizeConfig = getSizeConfig(size);
+
+  useEffect(() => {
+    localStorage.setItem('musicPlayerSize', size);
+  }, [size]);
 
   const lyrics: LyricLine[] = [
     { time: 0, text: "Welcome to the beat" },
@@ -135,12 +199,23 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
     setShowLyrics(!showLyrics);
   };
 
+  const cycleSizeUp = () => {
+    const sizes: PlayerSize[] = ['small', 'medium', 'large'];
+    const currentIndex = sizes.indexOf(size);
+    const nextIndex = (currentIndex + 1) % sizes.length;
+    setSize(sizes[nextIndex]);
+  };
+
   if (!musicUrl) return null;
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        className="relative flex flex-col mx-auto rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900/90 via-blue-900/90 to-indigo-900/90 shadow-[0_0_20px_rgba(139,69,255,0.3)] backdrop-blur-sm p-2 w-[110px] h-auto"
+        className={cn(
+          "relative flex flex-col mx-auto rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900/90 via-blue-900/90 to-indigo-900/90 shadow-[0_0_20px_rgba(139,69,255,0.3)] backdrop-blur-sm h-auto",
+          sizeConfig.width,
+          sizeConfig.padding
+        )}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
@@ -170,7 +245,7 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
               layout
             >
               {/* Cover */}
-              <motion.div className="bg-white/10 overflow-hidden rounded-[12px] h-[70px] w-full relative mb-2">
+              <motion.div className={cn("bg-white/10 overflow-hidden rounded-[12px] w-full relative mb-2", sizeConfig.coverHeight)}>
                 <img
                   src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                   alt="cover"
@@ -179,27 +254,27 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
               </motion.div>
 
-              <motion.div className="flex flex-col w-full gap-y-1">
+              <motion.div className={cn("flex flex-col w-full", sizeConfig.gap)}>
                 {/* Title & Artist */}
                 <div className="text-center">
-                  <motion.h3 className="text-white font-bold text-xs truncate">
+                  <motion.h3 className={cn("text-white font-bold truncate", sizeConfig.titleSize)}>
                     {musicTitle || 'Music'}
                   </motion.h3>
-                  <motion.p className="text-white/70 text-xs">Electronic</motion.p>
+                  <motion.p className={cn("text-white/70", sizeConfig.titleSize)}>Electronic</motion.p>
                 </div>
 
                 {/* Slider */}
-                <motion.div className="flex flex-col gap-y-1">
+                <motion.div className={cn("flex flex-col", sizeConfig.gap)}>
                   <CustomSlider
                     value={progress}
                     onChange={handleSeek}
                     className="w-full"
                   />
                   <div className="flex items-center justify-between">
-                    <span className="text-white/80 text-xs">
+                    <span className={cn("text-white/80", sizeConfig.timeSize)}>
                       {formatTime(currentTime)}
                     </span>
-                    <span className="text-white/80 text-xs">
+                    <span className={cn("text-white/80", sizeConfig.timeSize)}>
                       {formatTime(duration)}
                     </span>
                   </div>
@@ -207,27 +282,28 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
 
                 {/* Controls */}
                 <motion.div className="flex items-center justify-center w-full">
-                  <div className="flex items-center gap-1 w-fit bg-black/20 rounded-[12px] p-1">
+                  <div className={cn("flex items-center w-fit bg-black/20 rounded-[12px] p-1", sizeConfig.controlGap)}>
                     <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsShuffle(!isShuffle)}
                         className={cn(
-                          "text-white hover:bg-white/10 hover:text-white h-6 w-6 rounded-full",
+                          "text-white hover:bg-white/10 hover:text-white rounded-full",
+                          sizeConfig.buttonSize,
                           isShuffle && "bg-white/20 text-white"
                         )}
                       >
-                        <Shuffle className="h-3 w-3" />
+                        <Shuffle className={sizeConfig.iconSize} />
                       </Button>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-white hover:bg-white/10 hover:text-white h-6 w-6 rounded-full"
+                        className={cn("text-white hover:bg-white/10 hover:text-white rounded-full", sizeConfig.buttonSize)}
                       >
-                        <SkipBack className="h-3 w-3" />
+                        <SkipBack className={sizeConfig.iconSize} />
                       </Button>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -235,12 +311,12 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                         onClick={togglePlay}
                         variant="ghost"
                         size="icon"
-                        className="text-white hover:bg-white/10 hover:text-white h-7 w-7 rounded-full bg-white/10"
+                        className={cn("text-white hover:bg-white/10 hover:text-white rounded-full bg-white/10", sizeConfig.playButtonSize)}
                       >
                         {isPlaying ? (
-                          <Pause className="h-3 w-3" />
+                          <Pause className={sizeConfig.iconSize} />
                         ) : (
-                          <Play className="h-3 w-3" />
+                          <Play className={sizeConfig.iconSize} />
                         )}
                       </Button>
                     </motion.div>
@@ -248,9 +324,9 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-white hover:bg-white/10 hover:text-white h-6 w-6 rounded-full"
+                        className={cn("text-white hover:bg-white/10 hover:text-white rounded-full", sizeConfig.buttonSize)}
                       >
-                        <SkipForward className="h-3 w-3" />
+                        <SkipForward className={sizeConfig.iconSize} />
                       </Button>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -259,11 +335,12 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                         size="icon"
                         onClick={() => setIsRepeat(!isRepeat)}
                         className={cn(
-                          "text-white hover:bg-white/10 hover:text-white h-6 w-6 rounded-full",
+                          "text-white hover:bg-white/10 hover:text-white rounded-full",
+                          sizeConfig.buttonSize,
                           isRepeat && "bg-white/20 text-white"
                         )}
                       >
-                        <Repeat className="h-3 w-3" />
+                        <Repeat className={sizeConfig.iconSize} />
                       </Button>
                     </motion.div>
                   </div>
@@ -273,12 +350,34 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                 <motion.div className="flex justify-center mt-1">
                   <motion.button
                     onClick={toggleLyrics}
-                    className="flex items-center gap-1 bg-gradient-to-r from-pink-500/80 to-purple-500/80 hover:from-pink-600/80 hover:to-purple-600/80 text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-300"
+                    className={cn(
+                      "flex items-center gap-1 bg-gradient-to-r from-pink-500/80 to-purple-500/80 hover:from-pink-600/80 hover:to-purple-600/80 text-white px-2 py-1 rounded-full font-medium transition-all duration-300",
+                      sizeConfig.karaokeSize
+                    )}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Mic className="h-2 w-2" />
+                    <Mic className={sizeConfig.karaokeIconSize} />
                     Karaoke
+                  </motion.button>
+                </motion.div>
+
+                {/* Size Control */}
+                <motion.div className="flex justify-center mt-1">
+                  <motion.button
+                    onClick={cycleSizeUp}
+                    className={cn(
+                      "flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded-full font-medium transition-all duration-300",
+                      sizeConfig.karaokeSize
+                    )}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    title={`Current size: ${size}. Click to change.`}
+                  >
+                    {size === 'small' && <Maximize2 className={sizeConfig.karaokeIconSize} />}
+                    {size === 'medium' && <Maximize2 className={sizeConfig.karaokeIconSize} />}
+                    {size === 'large' && <Minimize2 className={sizeConfig.karaokeIconSize} />}
+                    {size.charAt(0).toUpperCase() + size.slice(1)}
                   </motion.button>
                 </motion.div>
               </motion.div>
