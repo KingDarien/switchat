@@ -140,7 +140,7 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        className="relative flex flex-col mx-auto rounded-3xl overflow-hidden bg-gradient-to-br from-purple-900/90 via-blue-900/90 to-indigo-900/90 shadow-[0_0_30px_rgba(139,69,255,0.3)] backdrop-blur-sm p-4 w-[320px] h-auto"
+        className="relative flex flex-col mx-auto rounded-2xl overflow-hidden bg-gradient-to-br from-purple-900/90 via-blue-900/90 to-indigo-900/90 shadow-[0_0_20px_rgba(139,69,255,0.3)] backdrop-blur-sm p-2 w-[110px] h-auto"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
@@ -170,7 +170,7 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
               layout
             >
               {/* Cover */}
-              <motion.div className="bg-white/10 overflow-hidden rounded-[20px] h-[200px] w-full relative mb-4">
+              <motion.div className="bg-white/10 overflow-hidden rounded-[12px] h-[70px] w-full relative mb-2">
                 <img
                   src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=2970&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                   alt="cover"
@@ -179,27 +179,27 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
               </motion.div>
 
-              <motion.div className="flex flex-col w-full gap-y-3">
+              <motion.div className="flex flex-col w-full gap-y-1">
                 {/* Title & Artist */}
                 <div className="text-center">
-                  <motion.h3 className="text-white font-bold text-lg">
-                    {musicTitle || 'Background Music'}
+                  <motion.h3 className="text-white font-bold text-xs truncate">
+                    {musicTitle || 'Music'}
                   </motion.h3>
-                  <motion.p className="text-white/70 text-sm">Electronic Music</motion.p>
+                  <motion.p className="text-white/70 text-xs">Electronic</motion.p>
                 </div>
 
                 {/* Slider */}
-                <motion.div className="flex flex-col gap-y-2">
+                <motion.div className="flex flex-col gap-y-1">
                   <CustomSlider
                     value={progress}
                     onChange={handleSeek}
                     className="w-full"
                   />
                   <div className="flex items-center justify-between">
-                    <span className="text-white/80 text-sm">
+                    <span className="text-white/80 text-xs">
                       {formatTime(currentTime)}
                     </span>
-                    <span className="text-white/80 text-sm">
+                    <span className="text-white/80 text-xs">
                       {formatTime(duration)}
                     </span>
                   </div>
@@ -207,27 +207,27 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
 
                 {/* Controls */}
                 <motion.div className="flex items-center justify-center w-full">
-                  <div className="flex items-center gap-2 w-fit bg-black/20 rounded-[20px] p-3">
+                  <div className="flex items-center gap-1 w-fit bg-black/20 rounded-[12px] p-1">
                     <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsShuffle(!isShuffle)}
                         className={cn(
-                          "text-white hover:bg-white/10 hover:text-white h-8 w-8 rounded-full",
+                          "text-white hover:bg-white/10 hover:text-white h-6 w-6 rounded-full",
                           isShuffle && "bg-white/20 text-white"
                         )}
                       >
-                        <Shuffle className="h-4 w-4" />
+                        <Shuffle className="h-3 w-3" />
                       </Button>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-white hover:bg-white/10 hover:text-white h-8 w-8 rounded-full"
+                        className="text-white hover:bg-white/10 hover:text-white h-6 w-6 rounded-full"
                       >
-                        <SkipBack className="h-4 w-4" />
+                        <SkipBack className="h-3 w-3" />
                       </Button>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -235,12 +235,12 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                         onClick={togglePlay}
                         variant="ghost"
                         size="icon"
-                        className="text-white hover:bg-white/10 hover:text-white h-10 w-10 rounded-full bg-white/10"
+                        className="text-white hover:bg-white/10 hover:text-white h-7 w-7 rounded-full bg-white/10"
                       >
                         {isPlaying ? (
-                          <Pause className="h-5 w-5" />
+                          <Pause className="h-3 w-3" />
                         ) : (
-                          <Play className="h-5 w-5" />
+                          <Play className="h-3 w-3" />
                         )}
                       </Button>
                     </motion.div>
@@ -248,9 +248,9 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-white hover:bg-white/10 hover:text-white h-8 w-8 rounded-full"
+                        className="text-white hover:bg-white/10 hover:text-white h-6 w-6 rounded-full"
                       >
-                        <SkipForward className="h-4 w-4" />
+                        <SkipForward className="h-3 w-3" />
                       </Button>
                     </motion.div>
                     <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -259,26 +259,26 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                         size="icon"
                         onClick={() => setIsRepeat(!isRepeat)}
                         className={cn(
-                          "text-white hover:bg-white/10 hover:text-white h-8 w-8 rounded-full",
+                          "text-white hover:bg-white/10 hover:text-white h-6 w-6 rounded-full",
                           isRepeat && "bg-white/20 text-white"
                         )}
                       >
-                        <Repeat className="h-4 w-4" />
+                        <Repeat className="h-3 w-3" />
                       </Button>
                     </motion.div>
                   </div>
                 </motion.div>
 
                 {/* Karaoke Toggle Button */}
-                <motion.div className="flex justify-center mt-2">
+                <motion.div className="flex justify-center mt-1">
                   <motion.button
                     onClick={toggleLyrics}
-                    className="flex items-center gap-2 bg-gradient-to-r from-pink-500/80 to-purple-500/80 hover:from-pink-600/80 hover:to-purple-600/80 text-white px-4 py-2 rounded-full font-medium transition-all duration-300"
+                    className="flex items-center gap-1 bg-gradient-to-r from-pink-500/80 to-purple-500/80 hover:from-pink-600/80 hover:to-purple-600/80 text-white px-2 py-1 rounded-full text-xs font-medium transition-all duration-300"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Mic className="h-4 w-4" />
-                    Karaoke Mode
+                    <Mic className="h-2 w-2" />
+                    Karaoke
                   </motion.button>
                 </motion.div>
               </motion.div>
