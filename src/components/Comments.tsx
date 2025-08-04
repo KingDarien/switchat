@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
+  user_id: string;
   username: string;
   display_name: string;
   avatar_url: string;
@@ -41,6 +42,7 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
   const [comments, setComments] = useState<CommentWithProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [profileUpdates, setProfileUpdates] = useState<{[key: string]: any}>({});
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -90,6 +92,38 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
       fetchComments();
     }
   }, [isOpen, postId]);
+
+  // Listen for real-time profile updates
+  useEffect(() => {
+    if (!isOpen || comments.length === 0) return;
+
+    const uniqueUserIds = Array.from(new Set(comments.map(c => c.profiles?.user_id).filter(Boolean)));
+    if (uniqueUserIds.length === 0) return;
+
+    const channel = supabase
+      .channel('comment-profile-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          if (uniqueUserIds.includes(payload.new.user_id)) {
+            setProfileUpdates(prev => ({
+              ...prev,
+              [payload.new.user_id]: payload.new
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    }
+  }, [isOpen, comments]);
 
   const getInitials = (name: string) => {
     if (!name) return 'U';
@@ -158,13 +192,14 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
         ) : (
           <div className="space-y-4">
             {comments.map((comment) => {
-              const displayName = comment.profiles?.display_name || comment.profiles?.username || 'Anonymous';
-              const username = comment.profiles?.username || 'user';
+              const updatedProfile = profileUpdates[comment.profiles?.user_id] || comment.profiles;
+              const displayName = updatedProfile?.display_name || updatedProfile?.username || 'Anonymous';
+              const username = updatedProfile?.username || 'user';
               
               return (
                 <div key={comment.id} className="flex gap-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={comment.profiles?.avatar_url} />
+                    <AvatarImage src={updatedProfile?.avatar_url} />
                     <AvatarFallback className="text-xs">
                       {getInitials(displayName)}
                     </AvatarFallback>
@@ -176,9 +211,9 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
                         <UserDisplayName
                           displayName={displayName}
                           username={username}
-                          rank={comment.profiles?.current_rank}
-                          isVerified={comment.profiles?.is_verified}
-                          verificationTier={comment.profiles?.verification_tier}
+                          rank={updatedProfile?.current_rank}
+                          isVerified={updatedProfile?.is_verified}
+                          verificationTier={updatedProfile?.verification_tier}
                           className="text-sm"
                         />
                         <p className="text-xs text-muted-foreground">

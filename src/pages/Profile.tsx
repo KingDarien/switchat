@@ -182,8 +182,17 @@ const Profile = () => {
         .from('posts')
         .getPublicUrl(`avatars/${fileName}`);
 
-      // Update profile with new avatar URL
-      setProfile(prev => ({ ...prev, avatar_url: data.publicUrl }));
+      // Update profile state with new avatar URL
+      const newAvatarUrl = `${data.publicUrl}?t=${Date.now()}`;
+      setProfile(prev => ({ ...prev, avatar_url: newAvatarUrl }));
+
+      // Immediately save to database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: newAvatarUrl })
+        .eq('user_id', user!.id);
+
+      if (updateError) throw updateError;
 
       toast({
         title: "Success!",

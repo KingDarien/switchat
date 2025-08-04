@@ -27,12 +27,49 @@ const PopularityRanking = () => {
   const [topUsers, setTopUsers] = useState<Profile[]>([]);
   const [followerCount, setFollowerCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [profileUpdates, setProfileUpdates] = useState<{[key: string]: any}>({});
 
   useEffect(() => {
     if (user) {
       fetchRankingData();
     }
   }, [user]);
+
+  // Listen for real-time profile updates
+  useEffect(() => {
+    if (topUsers.length === 0 && !userRank) return;
+
+    const allUserIds = [
+      ...topUsers.map(u => u.user_id),
+      ...(userRank ? [userRank.user_id] : [])
+    ].filter(Boolean);
+
+    if (allUserIds.length === 0) return;
+
+    const channel = supabase
+      .channel('ranking-profile-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          if (allUserIds.includes(payload.new.user_id)) {
+            setProfileUpdates(prev => ({
+              ...prev,
+              [payload.new.user_id]: payload.new
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    }
+  }, [topUsers, userRank]);
 
   const fetchRankingData = async () => {
     if (!user) return;
@@ -212,11 +249,11 @@ const PopularityRanking = () => {
                     {index + 1}
                   </Badge>
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={profile.avatar_url} />
-                    <AvatarFallback>{getInitials(profile.display_name || '')}</AvatarFallback>
+                    <AvatarImage src={(profileUpdates[profile.user_id] || profile).avatar_url} />
+                    <AvatarFallback>{getInitials((profileUpdates[profile.user_id] || profile).display_name || '')}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">{profile.display_name}</p>
+                    <p className="font-medium">{(profileUpdates[profile.user_id] || profile).display_name}</p>
                     <p className="text-sm text-muted-foreground">
                       {profile.niches?.name && (
                         <span className="flex items-center gap-1">

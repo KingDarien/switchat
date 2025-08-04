@@ -12,6 +12,7 @@ import Comments from './Comments';
 import UserDisplayName from './UserDisplayName';
 
 interface Profile {
+  user_id: string;
   username: string;
   display_name: string;
   avatar_url: string;
@@ -40,6 +41,7 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
   const [commentsCount, setCommentsCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [profileData, setProfileData] = useState(post.profiles);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -47,6 +49,31 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
     fetchComments();
     checkUserReaction();
   }, [post.id, user?.id]);
+
+  // Listen for real-time profile updates
+  useEffect(() => {
+    if (!post.profiles?.user_id) return;
+
+    const channel = supabase
+      .channel('profile-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${post.profiles.user_id}`
+        },
+        (payload) => {
+          setProfileData(payload.new as any);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    }
+  }, [post.profiles?.user_id]);
 
   const fetchReactions = async () => {
     const { data, error } = await supabase
@@ -177,24 +204,24 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
       .slice(0, 2);
   };
 
-  const displayName = post.profiles?.display_name || post.profiles?.username || 'Anonymous';
-  const username = post.profiles?.username || 'user';
+  const displayName = profileData?.display_name || profileData?.username || 'Anonymous';
+  const username = profileData?.username || 'user';
 
   return (
     <Card className="animate-fade-in">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={post.profiles?.avatar_url} />
+            <AvatarImage src={profileData?.avatar_url} />
             <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
             <UserDisplayName
               displayName={displayName}
               username={username}
-              rank={post.profiles?.current_rank}
-              isVerified={post.profiles?.is_verified}
-              verificationTier={post.profiles?.verification_tier}
+              rank={profileData?.current_rank}
+              isVerified={profileData?.is_verified}
+              verificationTier={profileData?.verification_tier}
             />
             <p className="text-sm text-muted-foreground mt-1">
               {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}

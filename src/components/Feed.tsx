@@ -9,6 +9,7 @@ import NewsCard from './NewsCard';
 import PullToRefresh from './PullToRefresh';
 
 interface Profile {
+  user_id: string;
   username: string;
   display_name: string;
   avatar_url: string;

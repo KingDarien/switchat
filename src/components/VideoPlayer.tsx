@@ -44,6 +44,7 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
+  const [profileData, setProfileData] = useState(post.profiles);
   const startY = useRef(0);
   const isDragging = useRef(false);
   const { user } = useAuth();
@@ -223,9 +224,9 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
   };
 
   const getVerificationBadge = () => {
-    if (!post.profiles.is_verified) return null;
+    if (!profileData?.is_verified) return null;
     
-    const { verification_tier } = post.profiles;
+    const { verification_tier } = profileData;
     const colors = {
       diamond: 'bg-gradient-to-r from-blue-400 to-purple-400',
       gold: 'bg-gradient-to-r from-yellow-400 to-orange-400',
@@ -245,6 +246,31 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
       fetchLikes();
     }
   }, [isActive, post.id]);
+
+  // Listen for real-time profile updates
+  useEffect(() => {
+    if (!post.profiles?.user_id) return;
+
+    const channel = supabase
+      .channel('video-profile-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${post.profiles.user_id}`
+        },
+        (payload) => {
+          setProfileData(payload.new as any);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    }
+  }, [post.profiles?.user_id]);
 
   if (!post.video_url) return null;
 
@@ -288,15 +314,15 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
       {/* User Info */}
       <div className="absolute bottom-24 left-4 flex items-center gap-3 text-white">
         <Avatar className="w-12 h-12 border-2 border-white">
-          <AvatarImage src={post.profiles.avatar_url || ''} />
+          <AvatarImage src={profileData?.avatar_url || ''} />
           <AvatarFallback className="bg-muted">
-            {(post.profiles.display_name || post.profiles.username || 'U')[0]}
+            {(profileData?.display_name || profileData?.username || 'U')[0]}
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">
-              {post.profiles.display_name || post.profiles.username || 'Unknown User'}
+              {profileData?.display_name || profileData?.username || 'Unknown User'}
             </span>
             {getVerificationBadge()}
           </div>
