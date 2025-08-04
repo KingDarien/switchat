@@ -1,28 +1,40 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Crown, Star, Award, Gem } from 'lucide-react';
 
 interface UserDisplayNameProps {
   displayName: string;
   username: string;
+  userId?: string;
   rank?: number | null;
   isVerified?: boolean;
   verificationTier?: string;
   className?: string;
   showRank?: boolean;
   showVerification?: boolean;
+  clickable?: boolean;
 }
 
 const UserDisplayName: React.FC<UserDisplayNameProps> = ({
   displayName,
   username,
+  userId,
   rank,
   isVerified = false,
   verificationTier = 'none',
   className = '',
   showRank = true,
   showVerification = true,
+  clickable = true,
 }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    if (clickable && userId) {
+      navigate(`/user/${userId}`);
+    }
+  };
   const getVerificationIcon = () => {
     if (!isVerified || !showVerification) return null;
     
@@ -64,7 +76,10 @@ const UserDisplayName: React.FC<UserDisplayNameProps> = ({
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div 
+      className={`flex items-center gap-2 ${clickable && userId ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''} ${className}`}
+      onClick={handleClick}
+    >
       <div className="flex flex-col">
         <div className="flex items-center gap-1.5">
           <span className="font-semibold text-foreground">{displayName}</span>

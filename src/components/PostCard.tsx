@@ -1,15 +1,20 @@
 import { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserProfile } from '@/hooks/useUserProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Heart, MessageCircle, Share, Smile } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Heart, MessageCircle, Share, Smile, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 import Comments from './Comments';
 import UserDisplayName from './UserDisplayName';
+import PostEditDialog from './PostEditDialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
   user_id: string;
@@ -42,7 +47,12 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
   const [loading, setLoading] = useState(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [profileData, setProfileData] = useState(post.profiles);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [postContent, setPostContent] = useState(post.content);
   const { user } = useAuth();
+  const { profile } = useUserProfile();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchReactions();
@@ -195,6 +205,63 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
     }
   };
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: `Post by ${profileData?.display_name || 'Unknown User'}`,
+        text: postContent,
+        url: window.location.href,
+      });
+    } else {
+      // Fallback to copying to clipboard
+      navigator.clipboard.writeText(window.location.href);
+    }
+  };
+
+  const canManagePost = () => {
+    return user?.id === post.user_id || profile?.user_role === 'super_admin';
+  };
+
+  const handleDeletePost = async () => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', post.id);
+
+      if (error) throw error;
+
+      if (profile?.user_role === 'super_admin' && user?.id !== post.user_id) {
+        await supabase.rpc('log_admin_action', {
+          action_type_param: 'post_delete',
+          target_user_id_param: post.user_id,
+          target_resource_type_param: 'post',
+          target_resource_id_param: post.id,
+          reason_param: 'Admin deleted user post'
+        });
+      }
+
+      toast({
+        title: "Success",
+        description: "Post deleted successfully.",
+      });
+      
+      // The post will be removed from UI via real-time updates
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete post. Please try again.",
+        variant: "destructive",
+      });
+    }
+    setDeleteDialogOpen(false);
+  };
+
+  const handleUpdatePost = (newContent: string) => {
+    setPostContent(newContent);
+  };
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -210,28 +277,53 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
   return (
     <Card className="animate-fade-in">
       <CardHeader className="pb-3">
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src={profileData?.avatar_url} />
-            <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <UserDisplayName
-              displayName={displayName}
-              username={username}
-              rank={profileData?.current_rank}
-              isVerified={profileData?.is_verified}
-              verificationTier={profileData?.verification_tier}
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-            </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarImage src={profileData?.avatar_url} />
+              <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <UserDisplayName
+                displayName={displayName}
+                username={username}
+                userId={profileData?.user_id}
+                rank={profileData?.current_rank}
+                isVerified={profileData?.is_verified}
+                verificationTier={profileData?.verification_tier}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+              </p>
+            </div>
           </div>
+          {canManagePost() && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <p className="text-foreground">{post.content}</p>
+        <p className="text-foreground">{postContent}</p>
         
         {post.image_url && (
           <div className="rounded-lg overflow-hidden">
@@ -287,17 +379,46 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
             )}
           </div>
           
-          <Button variant="ghost" size="sm" className="flex items-center gap-2 text-muted-foreground">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="flex items-center gap-2 text-muted-foreground"
+            onClick={handleShare}
+          >
             <Share className="h-4 w-4" />
           </Button>
         </div>
         
-        <Comments 
-          postId={post.id} 
+        <Comments
+          postId={post.id}
           commentsCount={commentsCount}
           onCommentsCountChange={setCommentsCount}
           postAuthorId={post.user_id}
         />
+
+        <PostEditDialog
+          isOpen={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          post={{ id: post.id, content: postContent }}
+          onUpdate={handleUpdatePost}
+        />
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Post</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete this post? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeletePost} className="bg-destructive hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );
