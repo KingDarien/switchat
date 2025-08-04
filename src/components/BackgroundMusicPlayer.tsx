@@ -152,8 +152,9 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   const [showLyrics, setShowLyrics] = useState(false);
   const [currentLyricIndex, setCurrentLyricIndex] = useState(-1);
   
-  // Fixed dimensions - no longer adjustable
-  const dimensions = { width: 110, height: 160 };
+  // Adjustable dimensions
+  const [dimensions, setDimensions] = useState({ width: 320, height: 400 });
+  const [isResizing, setIsResizing] = useState(false);
 
   const sizeConfig = getSizeConfig(dimensions.width, dimensions.height);
   const size = getSizeFromDimensions(dimensions.width, dimensions.height);
@@ -210,8 +211,67 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   };
 
   const cycleSizeUp = () => {
-    // Size cycling is now disabled but button remains for UI consistency
-    console.log('Size adjustment disabled');
+    const sizes = [
+      { width: 320, height: 400 },
+      { width: 250, height: 320 },
+      { width: 180, height: 240 },
+      { width: 110, height: 160 }
+    ];
+    const currentIndex = sizes.findIndex(s => s.width === dimensions.width && s.height === dimensions.height);
+    const nextIndex = (currentIndex + 1) % sizes.length;
+    setDimensions(sizes[nextIndex]);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent, direction: 'se' | 'sw' | 'ne' | 'nw') => {
+    e.preventDefault();
+    setIsResizing(true);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = dimensions.width;
+    const startHeight = dimensions.height;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+      
+      if (direction.includes('e')) {
+        newWidth = Math.max(110, startWidth + (e.clientX - startX));
+      }
+      if (direction.includes('w')) {
+        newWidth = Math.max(110, startWidth - (e.clientX - startX));
+      }
+      if (direction.includes('s')) {
+        newHeight = Math.max(160, startHeight + (e.clientY - startY));
+      }
+      if (direction.includes('n')) {
+        newHeight = Math.max(160, startHeight - (e.clientY - startY));
+      }
+      
+      // Maintain aspect ratio approximately
+      const aspectRatio = 0.8; // width/height
+      if (Math.abs(newWidth / newHeight - aspectRatio) > 0.1) {
+        if (direction.includes('e') || direction.includes('w')) {
+          newHeight = newWidth / aspectRatio;
+        } else {
+          newWidth = newHeight * aspectRatio;
+        }
+      }
+      
+      setDimensions({ 
+        width: Math.min(400, Math.max(110, Math.round(newWidth))),
+        height: Math.min(500, Math.max(160, Math.round(newHeight)))
+      });
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   if (!musicUrl) return null;
@@ -381,21 +441,21 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                     {sizeConfig.showLabels && "Karaoke"}
                   </motion.button>
 
-                  {/* Size Control Button (now disabled but remains for UI consistency) */}
+                  {/* Size Control Button */}
                   <motion.button
                     onClick={cycleSizeUp}
                     className={cn(
-                      "flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-all duration-300 opacity-50 cursor-not-allowed",
+                      "flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-all duration-300",
                       sizeConfig.compactMode 
                         ? `${sizeConfig.buttonSize} p-0` 
                         : `gap-1 px-2 py-1 ${sizeConfig.karaokeSize}`
                     )}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    title="Size adjustment disabled"
+                    title="Cycle Size"
                   >
-                    <Minimize2 className={sizeConfig.karaokeIconSize} />
-                    {sizeConfig.showLabels && "Fixed"}
+                    <Maximize2 className={sizeConfig.karaokeIconSize} />
+                    {sizeConfig.showLabels && "Size"}
                   </motion.button>
                 </motion.div>
               </motion.div>
@@ -507,6 +567,41 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Resize Handles */}
+        {!showLyrics && (
+          <>
+            {/* Corner resize handles */}
+            <div
+              className="absolute top-0 right-0 w-3 h-3 cursor-se-resize opacity-0 hover:opacity-100 transition-opacity"
+              onMouseDown={(e) => handleMouseDown(e, 'ne')}
+              style={{
+                background: 'linear-gradient(-45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 60%, transparent 60%)'
+              }}
+            />
+            <div
+              className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize opacity-0 hover:opacity-100 transition-opacity"
+              onMouseDown={(e) => handleMouseDown(e, 'se')}
+              style={{
+                background: 'linear-gradient(-45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 60%, transparent 60%)'
+              }}
+            />
+            <div
+              className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize opacity-0 hover:opacity-100 transition-opacity"
+              onMouseDown={(e) => handleMouseDown(e, 'sw')}
+              style={{
+                background: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 60%, transparent 60%)'
+              }}
+            />
+            <div
+              className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize opacity-0 hover:opacity-100 transition-opacity"
+              onMouseDown={(e) => handleMouseDown(e, 'nw')}
+              style={{
+                background: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 60%, transparent 60%)'
+              }}
+            />
+          </>
+        )}
       </motion.div>
     </AnimatePresence>
   );
