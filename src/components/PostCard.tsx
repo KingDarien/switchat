@@ -205,6 +205,19 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
     }
   };
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const handleUpdatePost = (newContent: string) => {
+    setPostContent(newContent);
+  };
+
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -256,19 +269,6 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
       });
     }
     setDeleteDialogOpen(false);
-  };
-
-  const handleUpdatePost = (newContent: string) => {
-    setPostContent(newContent);
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
   };
 
   const displayName = profileData?.display_name || profileData?.username || 'Anonymous';
