@@ -129,8 +129,7 @@ const Profile = () => {
     try {
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: user!.id,
+        .update({
           username: profile.username,
           display_name: profile.display_name,
           bio: profile.bio,
@@ -142,7 +141,8 @@ const Profile = () => {
           background_theme: profile.background_theme,
           background_music_url: profile.background_music_url,
           background_music_title: profile.background_music_title,
-        });
+        })
+        .eq('user_id', user!.id);
 
       if (error) {
         throw error;
