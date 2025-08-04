@@ -14,6 +14,8 @@ import { Camera, Briefcase, MapPin, Globe } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import UserGoals from '@/components/UserGoals';
 import VerificationRequest from '@/components/VerificationRequest';
+import ThemeSelector from '@/components/ThemeSelector';
+import MusicSelector from '@/components/MusicSelector';
 
 interface Profile {
   username: string;
@@ -24,6 +26,13 @@ interface Profile {
   location: string;
   website_url: string;
   social_links: Record<string, string>;
+  background_theme: {
+    type: 'solid' | 'gradient' | 'image';
+    colors: string[];
+    imageUrl?: string;
+  };
+  background_music_url: string;
+  background_music_title: string;
 }
 
 interface Niche {
@@ -43,6 +52,12 @@ const Profile = () => {
     location: '',
     website_url: '',
     social_links: {},
+    background_theme: {
+      type: 'solid',
+      colors: ['#1a1a1a', '#2a2a2a']
+    },
+    background_music_url: '',
+    background_music_title: '',
   });
   const [niches, setNiches] = useState<Niche[]>([]);
   const [loading, setLoading] = useState(false);
@@ -90,6 +105,12 @@ const Profile = () => {
           location: data.location || '',
           website_url: data.website_url || '',
           social_links: (data.social_links as Record<string, string>) || {},
+          background_theme: (data.background_theme as any) || {
+            type: 'solid',
+            colors: ['#1a1a1a', '#2a2a2a']
+          },
+          background_music_url: data.background_music_url || '',
+          background_music_title: data.background_music_title || '',
         });
       }
     } catch (error: any) {
@@ -118,6 +139,9 @@ const Profile = () => {
           location: profile.location,
           website_url: profile.website_url,
           social_links: profile.social_links,
+          background_theme: profile.background_theme,
+          background_music_url: profile.background_music_url,
+          background_music_title: profile.background_music_title,
         });
 
       if (error) {
@@ -207,6 +231,22 @@ const Profile = () => {
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleThemeChange = (theme: { type: 'solid' | 'gradient' | 'image'; colors: string[]; imageUrl?: string }) => {
+    setProfile(prev => ({ ...prev, background_theme: theme }));
+    // Auto-save theme changes
+    handleSave();
+  };
+
+  const handleMusicChange = (url: string, title: string) => {
+    setProfile(prev => ({ 
+      ...prev, 
+      background_music_url: url,
+      background_music_title: title 
+    }));
+    // Auto-save music changes
+    handleSave();
   };
 
   const getInitials = (name: string) => {
@@ -374,6 +414,19 @@ const Profile = () => {
 
         {/* Verification Request */}
         <VerificationRequest />
+
+        {/* Theme Selector */}
+        <ThemeSelector 
+          currentTheme={profile.background_theme}
+          onThemeChange={handleThemeChange}
+        />
+
+        {/* Music Selector */}
+        <MusicSelector 
+          currentUrl={profile.background_music_url}
+          currentTitle={profile.background_music_title}
+          onMusicChange={handleMusicChange}
+        />
 
         {/* Goals Section */}
         <Card>
