@@ -573,32 +573,20 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
           <>
             {/* Corner resize handles */}
             <div
-              className="absolute top-0 right-0 w-3 h-3 cursor-se-resize opacity-0 hover:opacity-100 transition-opacity"
+              className="absolute top-0 right-0 w-4 h-4 cursor-se-resize bg-white/20 hover:bg-white/40 transition-all duration-200 rounded-bl-md"
               onMouseDown={(e) => handleMouseDown(e, 'ne')}
-              style={{
-                background: 'linear-gradient(-45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 60%, transparent 60%)'
-              }}
             />
             <div
-              className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize opacity-0 hover:opacity-100 transition-opacity"
+              className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize bg-white/20 hover:bg-white/40 transition-all duration-200 rounded-tl-md"
               onMouseDown={(e) => handleMouseDown(e, 'se')}
-              style={{
-                background: 'linear-gradient(-45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 60%, transparent 60%)'
-              }}
             />
             <div
-              className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize opacity-0 hover:opacity-100 transition-opacity"
+              className="absolute bottom-0 left-0 w-4 h-4 cursor-sw-resize bg-white/20 hover:bg-white/40 transition-all duration-200 rounded-tr-md"
               onMouseDown={(e) => handleMouseDown(e, 'sw')}
-              style={{
-                background: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 60%, transparent 60%)'
-              }}
             />
             <div
-              className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize opacity-0 hover:opacity-100 transition-opacity"
+              className="absolute top-0 left-0 w-4 h-4 cursor-nw-resize bg-white/20 hover:bg-white/40 transition-all duration-200 rounded-br-md"
               onMouseDown={(e) => handleMouseDown(e, 'nw')}
-              style={{
-                background: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 60%, transparent 60%)'
-              }}
             />
           </>
         )}
