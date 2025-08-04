@@ -126,51 +126,58 @@ const getSizeFromDimensions = (width: number, height: number): PlayerSize => {
 
 const getSizeConfig = (width: number, height: number) => {
   const size = getSizeFromDimensions(width, height);
-  const coverRatio = 0.6; // Cover takes 60% of height
-  const coverHeight = Math.max(50, Math.floor(height * coverRatio));
+  const isVerySmall = width < 120 || height < 140;
+  const coverRatio = isVerySmall ? 0.35 : 0.45; // Smaller cover for tiny sizes
+  const coverHeight = Math.max(30, Math.floor(height * coverRatio));
   
   switch (size) {
     case 'small':
       return {
-        titleSize: 'text-xs',
-        timeSize: 'text-xs',
+        titleSize: isVerySmall ? 'text-[10px]' : 'text-xs',
+        timeSize: 'text-[10px]',
         iconSize: 'h-3 w-3',
-        buttonSize: 'h-6 w-6',
-        playButtonSize: 'h-7 w-7',
-        karaokeSize: 'text-xs',
+        buttonSize: 'h-5 w-5',
+        playButtonSize: 'h-6 w-6',
+        karaokeSize: 'text-[10px]',
         karaokeIconSize: 'h-2 w-2',
-        padding: 'p-2',
-        gap: 'gap-y-1',
-        controlGap: 'gap-1',
+        padding: 'p-1.5',
+        gap: 'gap-y-0.5',
+        controlGap: 'gap-0.5',
         coverHeight: `h-[${coverHeight}px]`,
+        showLabels: !isVerySmall,
+        compactMode: true,
       };
     case 'medium':
       return {
         titleSize: 'text-sm',
-        timeSize: 'text-sm',
+        timeSize: 'text-xs',
         iconSize: 'h-4 w-4',
-        buttonSize: 'h-8 w-8',
-        playButtonSize: 'h-10 w-10',
-        karaokeSize: 'text-sm',
+        buttonSize: 'h-7 w-7',
+        playButtonSize: 'h-9 w-9',
+        karaokeSize: 'text-xs',
         karaokeIconSize: 'h-3 w-3',
-        padding: 'p-3',
-        gap: 'gap-y-2',
-        controlGap: 'gap-2',
+        padding: 'p-2.5',
+        gap: 'gap-y-1.5',
+        controlGap: 'gap-1.5',
         coverHeight: `h-[${coverHeight}px]`,
+        showLabels: true,
+        compactMode: false,
       };
     case 'large':
       return {
         titleSize: 'text-base',
         timeSize: 'text-sm',
         iconSize: 'h-5 w-5',
-        buttonSize: 'h-10 w-10',
-        playButtonSize: 'h-12 w-12',
+        buttonSize: 'h-9 w-9',
+        playButtonSize: 'h-11 w-11',
         karaokeSize: 'text-sm',
         karaokeIconSize: 'h-4 w-4',
         padding: 'p-4',
         gap: 'gap-y-3',
-        controlGap: 'gap-3',
+        controlGap: 'gap-2',
         coverHeight: `h-[${coverHeight}px]`,
+        showLabels: true,
+        compactMode: false,
       };
   }
 };
@@ -453,38 +460,45 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
                   </div>
                 </motion.div>
 
-                {/* Karaoke Toggle Button */}
-                <motion.div className="flex justify-center mt-1">
+                {/* Function Buttons */}
+                <motion.div className={cn(
+                  "flex justify-center mt-1",
+                  sizeConfig.compactMode ? "flex-col gap-0.5" : "flex-row gap-2"
+                )}>
+                  {/* Karaoke Button */}
                   <motion.button
                     onClick={toggleLyrics}
                     className={cn(
-                      "flex items-center gap-1 bg-gradient-to-r from-pink-500/80 to-purple-500/80 hover:from-pink-600/80 hover:to-purple-600/80 text-white px-2 py-1 rounded-full font-medium transition-all duration-300",
-                      sizeConfig.karaokeSize
+                      "flex items-center justify-center bg-gradient-to-r from-pink-500/80 to-purple-500/80 hover:from-pink-600/80 hover:to-purple-600/80 text-white rounded-full font-medium transition-all duration-300",
+                      sizeConfig.compactMode 
+                        ? `${sizeConfig.buttonSize} p-0` 
+                        : `gap-1 px-2 py-1 ${sizeConfig.karaokeSize}`
                     )}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    title="Toggle Karaoke Mode"
                   >
                     <Mic className={sizeConfig.karaokeIconSize} />
-                    Karaoke
+                    {sizeConfig.showLabels && "Karaoke"}
                   </motion.button>
-                </motion.div>
 
-                {/* Size Control */}
-                <motion.div className="flex justify-center mt-1">
+                  {/* Size Control Button */}
                   <motion.button
                     onClick={cycleSizeUp}
                     className={cn(
-                      "flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded-full font-medium transition-all duration-300",
-                      sizeConfig.karaokeSize
+                      "flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-all duration-300",
+                      sizeConfig.compactMode 
+                        ? `${sizeConfig.buttonSize} p-0` 
+                        : `gap-1 px-2 py-1 ${sizeConfig.karaokeSize}`
                     )}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    title={`Current size: ${size}. Click to change.`}
+                    title={`Current: ${size}. Click to resize.`}
                   >
                     {size === 'small' && <Maximize2 className={sizeConfig.karaokeIconSize} />}
                     {size === 'medium' && <Maximize2 className={sizeConfig.karaokeIconSize} />}
                     {size === 'large' && <Minimize2 className={sizeConfig.karaokeIconSize} />}
-                    {size.charAt(0).toUpperCase() + size.slice(1)}
+                    {sizeConfig.showLabels && size.charAt(0).toUpperCase() + size.slice(1)}
                   </motion.button>
                 </motion.div>
               </motion.div>
