@@ -211,11 +211,12 @@ const Comments = ({ postId, commentsCount, onCommentsCountChange, postAuthorId }
                         <UserDisplayName
                           displayName={displayName}
                           username={username}
-                          userId={comment.profiles.user_id}
+                          userId={updatedProfile?.user_id}
                           rank={updatedProfile?.current_rank}
                           isVerified={updatedProfile?.is_verified}
                           verificationTier={updatedProfile?.verification_tier}
-                          className="text-sm"
+                          variant="compact"
+                          size="sm"
                         />
                         <p className="text-xs text-muted-foreground">
                           {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}

@@ -14,6 +14,7 @@ import EmojiPicker from 'emoji-picker-react';
 import Comments from './Comments';
 import UserDisplayName from './UserDisplayName';
 import PostEditDialog from './PostEditDialog';
+import AnimatedReaction from './AnimatedReaction';
 import { useToast } from '@/hooks/use-toast';
 
 interface Profile {
@@ -50,6 +51,8 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postContent, setPostContent] = useState(post.content);
+  const [showReactionAnimation, setShowReactionAnimation] = useState(false);
+  const [animatedEmoji, setAnimatedEmoji] = useState('');
   const { user } = useAuth();
   const { profile } = useUserProfile();
   const { toast } = useToast();
@@ -196,6 +199,10 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
           
           setUserReaction(selectedEmoji);
           onLikeToggle?.();
+          
+          // Show animation for new reaction
+          setAnimatedEmoji(selectedEmoji);
+          setShowReactionAnimation(true);
         }
       }
     } catch (error) {
@@ -366,13 +373,14 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleEmojiSelect({ emoji })}
-                    className={`text-xs h-6 px-2 ${
+                    className={`text-sm h-8 px-3 rounded-full transition-all duration-200 ${
                       userReaction === emoji 
-                        ? 'bg-primary/10 text-primary border border-primary/20' 
-                        : 'text-muted-foreground hover:text-primary'
+                        ? 'bg-primary/10 text-primary border border-primary/20 scale-105 animate-pulse' 
+                        : 'text-muted-foreground hover:text-primary hover:bg-primary/5 hover:scale-105'
                     }`}
                   >
-                    {emoji} {count}
+                    <span className="text-base mr-1">{emoji}</span>
+                    <span className="font-medium">{count}</span>
                   </Button>
                 ))}
               </div>
@@ -415,12 +423,19 @@ const PostCard = ({ post, onLikeToggle }: PostCardProps) => {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleDeletePost} className="bg-destructive hover:bg-destructive/90">
                 Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </CardContent>
-    </Card>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reaction Animation */}
+      <AnimatedReaction
+        emoji={animatedEmoji}
+        show={showReactionAnimation}
+        onComplete={() => setShowReactionAnimation(false)}
+      />
+    </CardContent>
+  </Card>
   );
 };
 

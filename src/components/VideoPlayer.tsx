@@ -2,12 +2,13 @@ import { useRef, useEffect, useState } from 'react';
 import { Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Share } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import VideoComments from './VideoComments';
+import UserDisplayName from './UserDisplayName';
+import AnimatedReaction from './AnimatedReaction';
 
 interface Profile {
   user_id: string;
@@ -45,6 +46,8 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
   const [likeCount, setLikeCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const [profileData, setProfileData] = useState(post.profiles);
+  const [showReactionAnimation, setShowReactionAnimation] = useState(false);
+  const [animatedEmoji, setAnimatedEmoji] = useState('');
   const startY = useRef(0);
   const isDragging = useRef(false);
   const { user } = useAuth();
@@ -184,6 +187,10 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
         if (error) throw error;
         setIsLiked(true);
         setLikeCount(prev => prev + 1);
+        
+        // Show animation
+        setAnimatedEmoji('❤️');
+        setShowReactionAnimation(true);
       }
     } catch (error: any) {
       toast({
@@ -223,23 +230,6 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
     }
   };
 
-  const getVerificationBadge = () => {
-    if (!profileData?.is_verified) return null;
-    
-    const { verification_tier } = profileData;
-    const colors = {
-      diamond: 'bg-gradient-to-r from-blue-400 to-purple-400',
-      gold: 'bg-gradient-to-r from-yellow-400 to-orange-400',
-      silver: 'bg-gradient-to-r from-gray-300 to-gray-400',
-      bronze: 'bg-gradient-to-r from-orange-300 to-orange-500'
-    };
-    
-    return (
-      <Badge className={cn('text-xs text-white border-0', colors[verification_tier as keyof typeof colors] || colors.bronze)}>
-        ✓
-      </Badge>
-    );
-  };
 
   useEffect(() => {
     if (isActive) {
@@ -312,7 +302,7 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
       </div>
 
       {/* User Info */}
-      <div className="absolute bottom-24 left-4 flex items-center gap-3 text-white">
+      <div className="absolute bottom-24 left-4 flex items-center gap-3">
         <Avatar className="w-12 h-12 border-2 border-white">
           <AvatarImage src={profileData?.avatar_url || ''} />
           <AvatarFallback className="bg-muted">
@@ -320,13 +310,17 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm">
-              {profileData?.display_name || profileData?.username || 'Unknown User'}
-            </span>
-            {getVerificationBadge()}
-          </div>
-          <p className="text-xs text-white/80 max-w-xs truncate">
+          <UserDisplayName
+            displayName={profileData?.display_name || 'Unknown User'}
+            username={profileData?.username || 'user'}
+            userId={profileData?.user_id}
+            isVerified={profileData?.is_verified}
+            verificationTier={profileData?.verification_tier}
+            variant="video"
+            size="sm"
+            showRank={false}
+          />
+          <p className="text-xs text-white/80 max-w-xs truncate mt-1">
             {post.content}
           </p>
         </div>
@@ -397,6 +391,13 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
         postAuthorId={post.user_id}
         isOpen={showComments}
         onClose={() => setShowComments(false)}
+      />
+
+      {/* Reaction Animation */}
+      <AnimatedReaction
+        emoji={animatedEmoji}
+        show={showReactionAnimation}
+        onComplete={() => setShowReactionAnimation(false)}
       />
     </div>
   );

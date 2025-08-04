@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Heart, DollarSign, Gift, Calendar, Eye, EyeOff } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import UserDisplayName from './UserDisplayName';
 
 interface Goal {
   id: string;
@@ -103,6 +104,7 @@ const GoalCard: React.FC<GoalCardProps> = ({ goal, isOwner = false, onContribute
 
   const displayName = goal.is_anonymous ? 'Anonymous' : 
     (goal.profiles?.display_name || goal.profiles?.username || 'Unknown User');
+  const username = goal.profiles?.username || 'user';
 
   const authorAvatar = goal.is_anonymous ? '' : goal.profiles?.avatar_url;
 
@@ -118,18 +120,30 @@ const GoalCard: React.FC<GoalCardProps> = ({ goal, isOwner = false, onContribute
               </Avatar>
             )}
             <div className="flex-1">
-              <div className="flex items-center gap-2">
+              {!goal.is_anonymous && (
+                <UserDisplayName
+                  displayName={displayName}
+                  username={username}
+                  userId={goal.user_id}
+                  isVerified={false}
+                  verificationTier="none"
+                  variant="compact"
+                  size="sm"
+                  showRank={false}
+                />
+              )}
+              {goal.is_anonymous && (
                 <span className="font-medium text-sm">{displayName}</span>
+              )}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                <span>{getGoalTypeIcon()}</span>
+                <span>{goal.goal_type}</span>
+                {goal.is_public ? <Eye size={12} /> : <EyeOff size={12} />}
                 {goal.profiles?.trust_score && goal.profiles.trust_score > 50 && (
                   <Badge variant="outline" className="text-xs">
                     ⭐ {goal.profiles.trust_score}
                   </Badge>
                 )}
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>{getGoalTypeIcon()}</span>
-                <span>{goal.goal_type}</span>
-                {goal.is_public ? <Eye size={12} /> : <EyeOff size={12} />}
               </div>
             </div>
           </div>

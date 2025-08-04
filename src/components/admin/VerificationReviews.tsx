@@ -8,6 +8,7 @@ import { CheckCircle, XCircle, Clock, User, Trophy, Star, Shield, MessageSquare 
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import UserDisplayName from '../UserDisplayName';
 
 interface VerificationRequest {
   id: string;
@@ -20,6 +21,7 @@ interface VerificationRequest {
   created_at: string;
   updated_at: string;
   profiles: {
+    user_id: string;
     display_name: string;
     username: string;
     avatar_url: string;
@@ -225,10 +227,16 @@ const VerificationReviews = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg">
-                          {request.profiles?.display_name || request.profiles?.username}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">@{request.profiles?.username}</p>
+                        <UserDisplayName
+                          displayName={request.profiles?.display_name || 'Unknown User'}
+                          username={request.profiles?.username || 'user'}
+                          userId={request.user_id}
+                          isVerified={request.profiles?.is_verified || false}
+                          verificationTier={request.profiles?.verification_tier || 'none'}
+                          variant="vertical"
+                          size="md"
+                          showRank={false}
+                        />
                       </div>
                     </div>
                     
