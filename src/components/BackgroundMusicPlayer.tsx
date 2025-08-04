@@ -107,7 +107,7 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
     }
   };
   if (!musicUrl) return null;
-  return <div className="backdrop-blur-sm border p-3 shadow-sm bg-slate-50 rounded-sm">
+  return <div className="backdrop-blur-sm border pt-3 pb-3 pl-3 pr-1 shadow-sm bg-slate-50 rounded-sm">
       <audio ref={audioRef} src={musicUrl} loop onEnded={() => setIsPlaying(false)} onPlay={() => setIsPlaying(true)} onPause={() => setIsPlaying(false)} />
       
       <div className="flex items-center gap-2 mb-2">
