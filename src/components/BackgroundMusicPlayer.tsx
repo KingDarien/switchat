@@ -26,6 +26,7 @@ interface BackgroundMusicPlayerProps {
   musicUrl?: string;
   musicTitle?: string;
   autoPlay?: boolean;
+  lyrics?: LyricLine[];
 }
 
 const formatTime = (seconds: number = 0) => {
@@ -188,7 +189,8 @@ const getSizeConfig = (width: number, height: number) => {
 export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   musicUrl,
   musicTitle,
-  autoPlay = false
+  autoPlay = false,
+  lyrics: providedLyrics
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -213,17 +215,11 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
     localStorage.setItem('musicPlayerDimensions', JSON.stringify(dimensions));
   }, [dimensions]);
 
-  const lyrics: LyricLine[] = [
-    { time: 0, text: "Welcome to the beat" },
-    { time: 5, text: "Feel the rhythm flow" },
-    { time: 10, text: "Let the music take control" },
-    { time: 15, text: "Dance through the night" },
-    { time: 20, text: "Everything will be alright" },
-    { time: 25, text: "Music is our guide" },
-    { time: 30, text: "Let the sound collide" },
-    { time: 35, text: "Feel the energy rise" },
-    { time: 40, text: "See the magic in your eyes" },
-    { time: 45, text: "This is our time to shine" },
+  // Use provided lyrics or default message for instrumental music
+  const lyrics = providedLyrics || [
+    { time: 0, text: "🎵 Instrumental Music 🎵" },
+    { time: 5, text: "No lyrics available for this track" },
+    { time: 10, text: "Enjoy the beautiful sounds" }
   ];
 
   const togglePlay = () => {
