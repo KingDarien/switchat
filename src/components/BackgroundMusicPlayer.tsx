@@ -15,9 +15,10 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
   autoPlay = false
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.5);
+  const [volume, setVolume] = useState(0.3);
   const [isMuted, setIsMuted] = useState(false);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -26,23 +27,57 @@ export const BackgroundMusicPlayer: React.FC<BackgroundMusicPlayerProps> = ({
     }
   }, [volume, isMuted]);
 
+  // Check if user has already interacted with the site
   useEffect(() => {
-    const handleUserInteraction = () => {
-      setHasUserInteracted(true);
-      if (autoPlay && musicUrl && audioRef.current) {
-        audioRef.current.play().catch(console.error);
-        setIsPlaying(true);
+    const checkForPriorInteraction = () => {
+      // Check if there have been any clicks or key presses on the document
+      const hasInteracted = document.body.getAttribute('data-user-interacted') === 'true';
+      if (hasInteracted || hasUserInteracted) {
+        setHasUserInteracted(true);
+        if (autoPlay && musicUrl && audioRef.current) {
+          attemptAutoPlay();
+        }
       }
     };
 
-    document.addEventListener('click', handleUserInteraction, { once: true });
-    document.addEventListener('keydown', handleUserInteraction, { once: true });
+    checkForPriorInteraction();
+  }, [autoPlay, musicUrl]);
+
+  // Set up interaction detection for future interactions
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      setHasUserInteracted(true);
+      document.body.setAttribute('data-user-interacted', 'true');
+      if (autoPlay && musicUrl && audioRef.current && !isPlaying) {
+        attemptAutoPlay();
+      }
+    };
+
+    if (!hasUserInteracted) {
+      document.addEventListener('click', handleUserInteraction, { once: true });
+      document.addEventListener('keydown', handleUserInteraction, { once: true });
+      document.addEventListener('touchstart', handleUserInteraction, { once: true });
+    }
 
     return () => {
       document.removeEventListener('click', handleUserInteraction);
       document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener('touchstart', handleUserInteraction);
     };
-  }, [autoPlay, musicUrl]);
+  }, [autoPlay, musicUrl, hasUserInteracted, isPlaying]);
+
+  const attemptAutoPlay = async () => {
+    if (!audioRef.current || !musicUrl) return;
+    
+    try {
+      await audioRef.current.play();
+      setIsPlaying(true);
+      setLoadError(false);
+    } catch (error) {
+      console.warn('Auto-play failed:', error);
+      setLoadError(true);
+    }
+  };
 
   const togglePlayPause = () => {
     if (!audioRef.current || !musicUrl) return;
