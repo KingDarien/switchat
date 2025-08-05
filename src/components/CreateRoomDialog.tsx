@@ -37,24 +37,16 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
 
     setLoading(true);
     try {
-      // Check current session to ensure we're authenticated
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        toast.error('Session expired. Please sign in again.');
-        return;
-      }
+      console.log('Creating room with user:', user.id);
 
-      console.log('Creating room with user:', user.id, 'session user:', session.user.id);
-
-      // Ensure we're using the session user ID for consistency
+      // Use user.id directly from the auth context which is already validated
       const { data, error } = await supabase
         .from('audio_rooms')
         .insert({
           title: title.trim(),
           description: description.trim() || null,
           topic: topic.trim() || null,
-          host_id: session.user.id, // Use session user ID
+          host_id: user.id,
           is_private: isPrivate,
           max_participants: maxParticipants,
         })
@@ -63,12 +55,7 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
 
       if (error) {
         console.error('Error creating room:', error);
-        
-        if (error.message?.includes('violates row-level security policy')) {
-          toast.error('Authentication session invalid. Please refresh and try again.');
-        } else {
-          toast.error(error.message || 'Failed to create room. Please try again.');
-        }
+        toast.error(error.message || 'Failed to create room. Please try again.');
         return;
       }
 
@@ -82,7 +69,11 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
       onRoomCreated();
     } catch (error: any) {
       console.error('Error creating room:', error);
-      toast.error('Failed to create room. Please try again.');
+      if (error.message?.includes('Failed to fetch')) {
+        toast.error('Connection error. Please check your internet and try again.');
+      } else {
+        toast.error('Failed to create room. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
