@@ -45,15 +45,16 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
         return;
       }
 
-      console.log('Creating room with user:', user.id, 'session:', !!session);
+      console.log('Creating room with user:', user.id, 'session user:', session.user.id);
 
+      // Ensure we're using the session user ID for consistency
       const { data, error } = await supabase
         .from('audio_rooms')
         .insert({
           title: title.trim(),
           description: description.trim() || null,
           topic: topic.trim() || null,
-          host_id: user.id,
+          host_id: session.user.id, // Use session user ID
           is_private: isPrivate,
           max_participants: maxParticipants,
         })
