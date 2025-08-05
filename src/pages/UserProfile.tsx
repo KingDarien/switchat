@@ -16,6 +16,7 @@ import { BackgroundMusicPlayer } from '@/components/BackgroundMusicPlayer';
 import { ProfileStats } from '@/components/ProfileStats';
 import UserGoals from '@/components/UserGoals';
 import ClosestFriends from '@/components/ClosestFriends';
+import { CompactMusicPlayer } from '@/components/CompactMusicPlayer';
 import { formatDistanceToNow } from 'date-fns';
 
 interface Profile {
@@ -346,6 +347,7 @@ const UserProfile = () => {
                       </AvatarFallback>
                     </Avatar>
                     <ClosestFriends userId={userId!} />
+                    <CompactMusicPlayer className="mt-2" />
                   </div>
                   
                   {/* Background Music Player - responsive width */}
