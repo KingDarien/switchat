@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import CreateRoomDialog from './CreateRoomDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -64,6 +65,7 @@ const AudioFeed = () => {
   const [handRaised, setHandRaised] = useState(false);
   const [playingMemo, setPlayingMemo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCreateRoom, setShowCreateRoom] = useState(false);
 
   useEffect(() => {
     fetchAudioRooms();
@@ -290,7 +292,7 @@ const AudioFeed = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Live conversations & voice stories</p>
           </div>
-          <Button size="sm" className="gap-2">
+          <Button size="sm" className="gap-2" onClick={() => setShowCreateRoom(true)}>
             <Plus className="h-4 w-4" />
             Create Room
           </Button>
@@ -500,7 +502,7 @@ const AudioFeed = () => {
                 </div>
                 
                 <div className="space-y-3">
-                  <Button className="w-full gap-2">
+                  <Button className="w-full gap-2" onClick={() => setShowCreateRoom(true)}>
                     <Plus className="h-4 w-4" />
                     Start a Room
                   </Button>
@@ -513,6 +515,12 @@ const AudioFeed = () => {
           )}
         </div>
       </div>
+
+      <CreateRoomDialog
+        open={showCreateRoom}
+        onOpenChange={setShowCreateRoom}
+        onRoomCreated={fetchAudioRooms}
+      />
     </div>
   );
 };

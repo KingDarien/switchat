@@ -600,6 +600,45 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          from_user_id: string | null
+          id: string
+          is_read: boolean
+          message: string | null
+          post_id: string | null
+          title: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          post_id?: string | null
+          title?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          from_user_id?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          post_id?: string | null
+          title?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       onboarding_questions: {
         Row: {
           category: string
@@ -1217,6 +1256,18 @@ export type Database = {
       cleanup_expired_reset_tokens: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      create_notification: {
+        Args: {
+          target_user_id: string
+          notification_type: string
+          from_user_id?: string
+          post_id?: string
+          comment_id?: string
+          title?: string
+          message?: string
+        }
+        Returns: string
       }
       log_admin_action: {
         Args: {

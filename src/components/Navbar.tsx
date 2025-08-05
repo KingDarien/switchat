@@ -60,9 +60,9 @@ const Navbar = () => {
               </Button>
             </Link>
             
-            <Link to="/profile">
+            <Link to={`/profile/${user?.id}`}>
               <Button
-                variant={isActive('/profile') ? 'default' : 'ghost'}
+                variant={isActive(`/profile/${user?.id}`) ? 'default' : 'ghost'}
                 size="sm"
                 className="flex flex-col items-center gap-0.5 h-auto py-1 px-1"
               >
@@ -93,9 +93,9 @@ const Navbar = () => {
               </Button>
             </Link>
             
-            <Link to="/messages">
+            <Link to={isAdmin ? "/messages" : "/conversations"}>
               <Button
-                variant={isActive('/messages') ? 'default' : 'ghost'}
+                variant={isActive(isAdmin ? '/messages' : '/conversations') ? 'default' : 'ghost'}
                 size="sm"
                 className="flex flex-col items-center gap-0.5 h-auto py-1 px-1"
               >
@@ -124,6 +124,17 @@ const Navbar = () => {
                       Signed in as {user.email}
                     </p>
                   </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to={`/profile/${user?.id}`} className="w-full cursor-pointer">
+                    View Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="w-full cursor-pointer">
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>

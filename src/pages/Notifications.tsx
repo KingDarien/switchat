@@ -34,9 +34,57 @@ const Notifications = () => {
   }, [user]);
 
   const fetchNotifications = async () => {
-    // For now, we'll create mock notifications since we don't have a notifications table yet
-    // In a real app, you'd query a notifications table
-    setLoading(false);
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      // Fetch related data separately
+      const userIds = data?.map(n => n.from_user_id).filter(Boolean) || [];
+      const postIds = data?.map(n => n.post_id).filter(Boolean) || [];
+
+      const [profilesResponse, postsResponse] = await Promise.all([
+        userIds.length > 0 ? supabase
+          .from('profiles')
+          .select('user_id, username, display_name, avatar_url')
+          .in('user_id', userIds) : Promise.resolve({ data: [] }),
+        postIds.length > 0 ? supabase
+          .from('posts')
+          .select('id, content')
+          .in('id', postIds) : Promise.resolve({ data: [] })
+      ]);
+
+      const profiles = profilesResponse.data || [];
+      const posts = postsResponse.data || [];
+
+      const formattedNotifications = data?.map(notification => ({
+        id: notification.id,
+        type: notification.type as 'like' | 'comment' | 'follow',
+        created_at: notification.created_at,
+        from_user: {
+          username: profiles.find(p => p.user_id === notification.from_user_id)?.username || 'unknown',
+          display_name: profiles.find(p => p.user_id === notification.from_user_id)?.display_name || 'Unknown User',
+          avatar_url: profiles.find(p => p.user_id === notification.from_user_id)?.avatar_url || null,
+        },
+        post: notification.post_id ? {
+          id: notification.post_id,
+          content: posts.find(p => p.id === notification.post_id)?.content || '',
+        } : undefined,
+      })) || [];
+
+      setNotifications(formattedNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getNotificationIcon = (type: string) => {
