@@ -25,7 +25,15 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
   const { user } = useAuth();
 
   const handleCreateRoom = async () => {
-    if (!user || !title.trim()) return;
+    if (!title.trim()) {
+      toast.error('Room title is required');
+      return;
+    }
+
+    if (!user) {
+      toast.error('You must be logged in to create a room');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -42,7 +50,16 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating room:', error);
+        
+        if (error.message?.includes('violates row-level security policy')) {
+          toast.error('Authentication required to create rooms. Please log in.');
+        } else {
+          toast.error(error.message || 'Failed to create room. Please try again.');
+        }
+        return;
+      }
 
       toast.success('Audio room created successfully!');
       setTitle('');
@@ -54,8 +71,7 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
       onRoomCreated();
     } catch (error: any) {
       console.error('Error creating room:', error);
-      const errorMessage = error?.message || 'Failed to create room. Please try again.';
-      toast.error(errorMessage);
+      toast.error('Failed to create room. Please try again.');
     } finally {
       setLoading(false);
     }
