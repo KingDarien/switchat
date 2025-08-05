@@ -50,6 +50,48 @@ export type Database = {
         }
         Relationships: []
       }
+      audio_rooms: {
+        Row: {
+          created_at: string
+          current_participants: number | null
+          description: string | null
+          host_id: string
+          id: string
+          is_active: boolean
+          is_private: boolean
+          max_participants: number | null
+          title: string
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_participants?: number | null
+          description?: string | null
+          host_id: string
+          id?: string
+          is_active?: boolean
+          is_private?: boolean
+          max_participants?: number | null
+          title: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_participants?: number | null
+          description?: string | null
+          host_id?: string
+          id?: string
+          is_active?: boolean
+          is_private?: boolean
+          max_participants?: number | null
+          title?: string
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -785,6 +827,36 @@ export type Database = {
           },
         ]
       }
+      room_participants: {
+        Row: {
+          hand_raised: boolean
+          id: string
+          is_muted: boolean
+          joined_at: string
+          role: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          hand_raised?: boolean
+          id?: string
+          is_muted?: boolean
+          joined_at?: string
+          role?: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          hand_raised?: boolean
+          id?: string
+          is_muted?: boolean
+          joined_at?: string
+          role?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_blocks: {
         Row: {
           blocked_id: string
@@ -1080,6 +1152,42 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      voice_memos: {
+        Row: {
+          audio_url: string
+          created_at: string
+          duration: number | null
+          id: string
+          is_public: boolean
+          title: string | null
+          transcript: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audio_url: string
+          created_at?: string
+          duration?: number | null
+          id?: string
+          is_public?: boolean
+          title?: string | null
+          transcript?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audio_url?: string
+          created_at?: string
+          duration?: number | null
+          id?: string
+          is_public?: boolean
+          title?: string | null
+          transcript?: string | null
           updated_at?: string
           user_id?: string
         }

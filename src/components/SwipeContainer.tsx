@@ -3,11 +3,11 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 interface SwipeContainerProps {
-  children: [React.ReactNode, React.ReactNode]; // [main feed, video feed]
+  children: [React.ReactNode, React.ReactNode, React.ReactNode]; // [audio feed, main feed, video feed]
 }
 
 const SwipeContainer = ({ children }: SwipeContainerProps) => {
-  const [currentPage, setCurrentPage] = useState(0); // 0 = main feed, 1 = video feed
+  const [currentPage, setCurrentPage] = useState(1); // 0 = audio feed, 1 = main feed, 2 = video feed
   const [isTransitioning, setIsTransitioning] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
@@ -40,12 +40,20 @@ const SwipeContainer = ({ children }: SwipeContainerProps) => {
     const threshold = 50;
 
     if (Math.abs(deltaX) > threshold) {
-      if (deltaX > 0 && currentPage === 1) {
-        // Swipe right - go to main feed
-        setCurrentPage(0);
-      } else if (deltaX < 0 && currentPage === 0) {
-        // Swipe left - go to video feed
-        setCurrentPage(1);
+      if (deltaX > 0) {
+        // Swipe right
+        if (currentPage === 2) {
+          setCurrentPage(1); // Video to Main
+        } else if (currentPage === 1) {
+          setCurrentPage(0); // Main to Audio
+        }
+      } else if (deltaX < 0) {
+        // Swipe left
+        if (currentPage === 0) {
+          setCurrentPage(1); // Audio to Main
+        } else if (currentPage === 1) {
+          setCurrentPage(2); // Main to Video
+        }
       }
     }
     
@@ -76,10 +84,20 @@ const SwipeContainer = ({ children }: SwipeContainerProps) => {
     const threshold = 100;
 
     if (Math.abs(deltaX) > threshold) {
-      if (deltaX > 0 && currentPage === 1) {
-        setCurrentPage(0);
-      } else if (deltaX < 0 && currentPage === 0) {
-        setCurrentPage(1);
+      if (deltaX > 0) {
+        // Swipe right
+        if (currentPage === 2) {
+          setCurrentPage(1); // Video to Main
+        } else if (currentPage === 1) {
+          setCurrentPage(0); // Main to Audio
+        }
+      } else if (deltaX < 0) {
+        // Swipe left
+        if (currentPage === 0) {
+          setCurrentPage(1); // Audio to Main
+        } else if (currentPage === 1) {
+          setCurrentPage(2); // Main to Video
+        }
       }
     }
     
@@ -113,15 +131,31 @@ const SwipeContainer = ({ children }: SwipeContainerProps) => {
             currentPage === 1 ? 'bg-primary' : 'bg-white/50'
           )}
         />
+        <div 
+          className={cn(
+            'w-2 h-2 rounded-full transition-all duration-300',
+            currentPage === 2 ? 'bg-primary' : 'bg-white/50'
+          )}
+        />
       </div>
 
       {/* Swipe Instructions */}
       {currentPage === 0 && (
         <div className="absolute bottom-4 right-4 z-50 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
-          Swipe left for videos →
+          Swipe left for feed →
         </div>
       )}
       {currentPage === 1 && (
+        <>
+          <div className="absolute bottom-4 left-4 z-50 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
+            ← Audio
+          </div>
+          <div className="absolute bottom-4 right-4 z-50 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
+            Videos →
+          </div>
+        </>
+      )}
+      {currentPage === 2 && (
         <div className="absolute bottom-4 left-4 z-50 text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
           ← Swipe right for feed
         </div>
@@ -132,7 +166,7 @@ const SwipeContainer = ({ children }: SwipeContainerProps) => {
         className="flex h-full transition-transform duration-300 ease-out"
         style={{
           transform: `translateX(-${currentPage * 100}vw)`,
-          width: '200vw'
+          width: '300vw'
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -141,14 +175,19 @@ const SwipeContainer = ({ children }: SwipeContainerProps) => {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
       >
-        {/* Main Feed */}
+        {/* Audio Feed */}
         <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
           {children[0]}
         </div>
         
-        {/* Video Feed */}
+        {/* Main Feed */}
         <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
           {children[1]}
+        </div>
+        
+        {/* Video Feed */}
+        <div className="w-screen h-full flex-shrink-0 overflow-y-auto">
+          {children[2]}
         </div>
       </div>
     </div>

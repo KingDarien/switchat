@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Navbar from '@/components/Navbar';
 import Feed from '@/components/Feed';
 import VideoFeed from '@/components/VideoFeed';
+import AudioFeed from '@/components/AudioFeed';
 import SwipeContainer from '@/components/SwipeContainer';
 import LiveStatusBanner from '@/components/LiveStatusBanner';
 
@@ -36,6 +37,8 @@ const Index = () => {
         <LiveStatusBanner />
         <SwipeContainer>
           {[
+            // Audio Feed
+            <AudioFeed />,
             // Main Feed
             <div className="max-w-6xl mx-auto p-4 pb-20">
               <Feed />
