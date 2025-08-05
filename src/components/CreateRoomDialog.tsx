@@ -37,6 +37,16 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
 
     setLoading(true);
     try {
+      // Check current session to ensure we're authenticated
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        toast.error('Session expired. Please sign in again.');
+        return;
+      }
+
+      console.log('Creating room with user:', user.id, 'session:', !!session);
+
       const { data, error } = await supabase
         .from('audio_rooms')
         .insert({
@@ -54,7 +64,7 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
         console.error('Error creating room:', error);
         
         if (error.message?.includes('violates row-level security policy')) {
-          toast.error('Authentication required to create rooms. Please log in.');
+          toast.error('Authentication session invalid. Please refresh and try again.');
         } else {
           toast.error(error.message || 'Failed to create room. Please try again.');
         }
