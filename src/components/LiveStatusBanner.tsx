@@ -191,32 +191,32 @@ const LiveStatusBanner: React.FC = () => {
           <div className="border-t border-primary/20 p-3 space-y-2">
             <div className="text-xs font-medium text-muted-foreground mb-2">Banner Settings</div>
             
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-sm cursor-pointer hover:bg-accent/30 p-1 rounded">
               <input
                 type="checkbox"
                 checked={preferences.show_weather_banner}
                 onChange={() => togglePreference('show_weather_banner')}
-                className="rounded"
+                className="h-4 w-4 rounded border border-input bg-background accent-primary"
               />
               Show weather updates
             </label>
             
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-sm cursor-pointer hover:bg-accent/30 p-1 rounded">
               <input
                 type="checkbox"
                 checked={preferences.show_events_banner}
                 onChange={() => togglePreference('show_events_banner')}
-                className="rounded"
+                className="h-4 w-4 rounded border border-input bg-background accent-primary"
               />
               Show upcoming events
             </label>
             
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-sm cursor-pointer hover:bg-accent/30 p-1 rounded">
               <input
                 type="checkbox"
                 checked={preferences.show_birthday_banner}
                 onChange={() => togglePreference('show_birthday_banner')}
-                className="rounded"
+                className="h-4 w-4 rounded border border-input bg-background accent-primary"
               />
               Show birthday notifications
             </label>

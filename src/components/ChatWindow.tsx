@@ -170,8 +170,9 @@ const ChatWindow = ({ conversationId, onBack }: ChatWindowProps) => {
       <Card className="flex-1 flex flex-col">
         <CardHeader className="border-b">
           <div className="flex items-center space-x-3">
-            <Button variant="ghost" size="sm" onClick={onBack}>
+            <Button variant="ghost" size="sm" onClick={onBack} className="flex items-center gap-2">
               <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back</span>
             </Button>
             <Avatar className="h-8 w-8">
               <AvatarImage src={conversation.other_user.avatar_url} />

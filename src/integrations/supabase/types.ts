@@ -1253,6 +1253,10 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: boolean
       }
+      can_view_audio_room: {
+        Args: { room_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
       cleanup_expired_reset_tokens: {
         Args: Record<PropertyKey, never>
         Returns: undefined

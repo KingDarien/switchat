@@ -52,9 +52,10 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
       setMaxParticipants(50);
       onOpenChange(false);
       onRoomCreated();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating room:', error);
-      toast.error('Failed to create room. Please try again.');
+      const errorMessage = error?.message || 'Failed to create room. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
