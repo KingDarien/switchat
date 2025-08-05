@@ -11,23 +11,25 @@ interface LyricLine {
 
 interface CompactMusicPlayerProps {
   className?: string;
+  musicUrl?: string;
+  musicTitle?: string;
 }
 
-// Sample data for demonstration
-const sampleSong = {
-  title: "Feel Good Vibes",
-  url: "/music/peaceful-ambient.wav",
-  lyrics: [
-    { time: 0, text: "🎵 Life is beautiful when we're together" },
-    { time: 3, text: "🎵 Dancing through the moments that we treasure" },
-    { time: 6, text: "🎵 Every heartbeat tells a story" },
-    { time: 9, text: "🎵 Every smile lights up the glory" },
-    { time: 12, text: "🎵 Feel the rhythm, feel the beat" },
-    { time: 15, text: "🎵 Life is good and oh so sweet" }
-  ]
-};
+// Default lyrics for when no specific lyrics are available
+const getDefaultLyrics = (title: string) => [
+  { time: 0, text: `🎵 Now playing: ${title}` },
+  { time: 3, text: "🎵 Enjoy the music..." },
+  { time: 6, text: "🎵 Let the rhythm move you" },
+  { time: 9, text: "🎵 Feel the beat in your heart" },
+  { time: 12, text: "🎵 Music brings us together" },
+  { time: 15, text: "🎵 Life sounds better with music" }
+];
 
-export const CompactMusicPlayer: React.FC<CompactMusicPlayerProps> = ({ className }) => {
+export const CompactMusicPlayer: React.FC<CompactMusicPlayerProps> = ({ 
+  className, 
+  musicUrl, 
+  musicTitle 
+}) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -71,9 +73,15 @@ export const CompactMusicPlayer: React.FC<CompactMusicPlayerProps> = ({ classNam
     setCurrentTime(newTime);
   };
 
+  const currentSong = {
+    title: musicTitle || "No music selected",
+    url: musicUrl || "",
+    lyrics: musicTitle ? getDefaultLyrics(musicTitle) : [{ time: 0, text: "🎵 No music playing..." }]
+  };
+
   const getCurrentLyric = () => {
-    return sampleSong.lyrics.find((lyric, index) => {
-      const nextLyric = sampleSong.lyrics[index + 1];
+    return currentSong.lyrics.find((lyric, index) => {
+      const nextLyric = currentSong.lyrics[index + 1];
       return currentTime >= lyric.time && (!nextLyric || currentTime < nextLyric.time);
     });
   };
@@ -91,7 +99,7 @@ export const CompactMusicPlayer: React.FC<CompactMusicPlayerProps> = ({ classNam
       "w-full max-w-[280px] h-16 bg-background/80 backdrop-blur-sm border border-border rounded-lg p-3 transition-all duration-300",
       className
     )}>
-      <audio ref={audioRef} src={sampleSong.url} />
+      <audio ref={audioRef} src={currentSong.url} />
       
       {!showLyrics ? (
         // Music Player Mode
@@ -111,7 +119,7 @@ export const CompactMusicPlayer: React.FC<CompactMusicPlayerProps> = ({ classNam
 
           <div className="flex-1 min-w-0">
             <div className="text-xs font-medium text-foreground truncate mb-1">
-              {sampleSong.title}
+              {currentSong.title}
             </div>
             <div className="flex items-center gap-2">
               <Slider

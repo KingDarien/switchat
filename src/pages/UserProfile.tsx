@@ -347,7 +347,11 @@ const UserProfile = () => {
                       </AvatarFallback>
                     </Avatar>
                     <ClosestFriends userId={userId!} />
-                    <CompactMusicPlayer className="mt-2" />
+                    <CompactMusicPlayer 
+                      className="mt-2" 
+                      musicUrl={profile.background_music_url}
+                      musicTitle={profile.background_music_title}
+                    />
                   </div>
                   
                   {/* Background Music Player - responsive width */}
