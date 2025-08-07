@@ -187,8 +187,7 @@ const UserGoals: React.FC = () => {
     <div className="space-y-6">
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-6 w-6" />
+          <CardTitle>
             Your Goals
           </CardTitle>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
