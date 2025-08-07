@@ -52,9 +52,11 @@ const handler = async (req: Request): Promise<Response> => {
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
       // Check if email exists in auth.users
-      const { data: userData } = await supabase.auth.admin.getUserByEmail(email);
+      const { data: userData, error: userError } = await supabase.auth.admin.listUsers({
+        filter: `email.eq.${email}`
+      });
       
-      if (!userData.user) {
+      if (userError || !userData.users || userData.users.length === 0) {
         // Still log the attempt for security monitoring, but don't reveal if email exists
         await supabase.from('password_reset_requests').insert({
           email,
@@ -81,7 +83,7 @@ const handler = async (req: Request): Promise<Response> => {
       // Log reset request
       await supabase.from('password_reset_requests').insert({
         email,
-        user_id: userData.user.id,
+        user_id: userData.users[0].id,
         token: resetToken,
         ip_address: clientIP,
         user_agent: userAgent,
