@@ -68,16 +68,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const resetPassword = async (email: string) => {
-    const { data, error } = await supabase.functions.invoke('password-reset', {
-      body: { email, action: 'request' }
+    const redirectUrl = `${window.location.origin}/auth?reset=true`;
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl,
     });
     return { data, error };
   };
 
-  const confirmPasswordReset = async (token: string, newPassword: string) => {
-    const { data, error } = await supabase.functions.invoke('password-reset', {
-      body: { token, newPassword, action: 'confirm' }
-    });
+  const confirmPasswordReset = async (_token: string, newPassword: string) => {
+    // After clicking the reset link, Supabase creates a temporary session.
+    // We can update the password directly using the current session.
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
     return { data, error };
   };
 
