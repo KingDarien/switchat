@@ -3,7 +3,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.3";
 // LiveKit server SDK (ESM for Deno) - use a Deno-compatible pinned version
-import { AccessToken } from "https://esm.sh/livekit-server-sdk@2.5.7?target=deno";
+import { AccessToken } from "https://esm.sh/livekit-server-sdk@2.13.1?target=deno&bundle";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
