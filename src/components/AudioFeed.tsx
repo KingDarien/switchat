@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import CreateRoomDialog from './CreateRoomDialog';
 import { Button } from '@/components/ui/button';
@@ -6,11 +7,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Play, Pause, Volume2, Users, Plus, Hand, MoreVertical } from 'lucide-react';
+import { Mic, MicOff, Play, Pause, Volume2, Users, Plus, Hand, MoreVertical, Volume } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
+import { useLiveKit } from '@/hooks/useLiveKit';
 
 interface AudioRoom {
   id: string;
@@ -66,6 +68,10 @@ const AudioFeed = () => {
   const [playingMemo, setPlayingMemo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreateRoom, setShowCreateRoom] = useState(false);
+
+  // LiveKit integration
+  const livekit = useLiveKit();
+  const [needsAudioStart, setNeedsAudioStart] = useState(false);
 
   useEffect(() => {
     fetchAudioRooms();
@@ -147,6 +153,37 @@ const AudioFeed = () => {
       setUserRole('listener');
       fetchRoomParticipants(roomId);
       
+      // Request LiveKit token and connect as listener
+      const { data: tokenData, error: tokenError } = await supabase.functions.invoke('livekit-token', {
+        body: { roomId, asSpeaker: false }
+      });
+
+      if (tokenError || !tokenData?.token || !tokenData?.wsUrl) {
+        console.error('Error getting LiveKit token:', tokenError);
+        toast({
+          title: "Joined room",
+          description: "You're now listening (audio may be limited).",
+        });
+        return;
+      }
+
+      try {
+        await livekit.connect(tokenData.wsUrl, tokenData.token, false);
+        // Attempt to start audio; if blocked, show helper button
+        try {
+          await livekit.startAudio();
+          setNeedsAudioStart(false);
+        } catch {
+          setNeedsAudioStart(true);
+        }
+      } catch (lkErr) {
+        console.error('LiveKit connect error:', lkErr);
+        toast({
+          title: "Joined room",
+          description: "Connected without live audio due to a connection issue.",
+        });
+      }
+
       toast({
         title: "Joined room",
         description: "You're now listening to the conversation",
@@ -172,10 +209,14 @@ const AudioFeed = () => {
 
       if (error) throw error;
 
+      // Disconnect from LiveKit
+      await livekit.leave();
+
       setSelectedRoom(null);
       setIsInRoom(false);
       setUserRole('listener');
       setRoomParticipants([]);
+      setNeedsAudioStart(false);
       
       toast({
         title: "Left room",
@@ -234,6 +275,11 @@ const AudioFeed = () => {
 
       if (error) throw error;
       setIsMuted(!isMuted);
+
+      // Also toggle LiveKit mic if user is a speaker
+      if (userRole === 'speaker') {
+        await livekit.setMute(!isMuted);
+      }
     } catch (error) {
       console.error('Error toggling mute:', error);
     }
@@ -471,7 +517,7 @@ const AudioFeed = () => {
                       {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                     </Button>
                   )}
-                  
+
                   <Button
                     size="lg"
                     variant={handRaised ? "default" : "outline"}
@@ -484,6 +530,30 @@ const AudioFeed = () => {
                   <Button size="lg" variant="outline" className="rounded-full w-12 h-12">
                     <Volume2 className="h-5 w-5" />
                   </Button>
+
+                  {needsAudioStart && (
+                    <Button
+                      size="lg"
+                      className="rounded-full"
+                      onClick={async () => {
+                        try {
+                          await livekit.startAudio();
+                          setNeedsAudioStart(false);
+                          toast({
+                            title: "Audio enabled",
+                            description: "You should now hear the conversation.",
+                          });
+                        } catch (e) {
+                          toast({
+                            title: "Action required",
+                            description: "Please allow audio playback in your browser.",
+                          });
+                        }
+                      }}
+                    >
+                      Enable Audio
+                    </Button>
+                  )}
                 </div>
               </div>
             </>
