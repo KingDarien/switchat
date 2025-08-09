@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { useLiveKit } from '@/hooks/useLiveKit';
+import AudioWaveform from './AudioWaveform';
 
 interface AudioRoom {
   id: string;
@@ -429,6 +430,7 @@ const AudioFeed = () => {
                                 <Play className="h-3 w-3" />
                               )}
                             </Button>
+                            <AudioWaveform isPlaying={playingMemo === memo.id} />
                             <span className="text-xs text-muted-foreground">
                               {formatDuration(memo.duration)}
                             </span>

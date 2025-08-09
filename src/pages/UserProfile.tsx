@@ -499,6 +499,23 @@ const UserProfile = () => {
             </CardHeader>
           </Card>
 
+          {/* Featured Media */}
+          {(videoPosts.length > 0 || posts.length > 0) && (
+            <Card className="bg-card/90 backdrop-blur-sm border border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  Featured Media
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <PostCard post={(videoPosts[0] || posts[0]) as any} />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Profile Content */}
           <Tabs defaultValue="posts" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 bg-card/90 backdrop-blur-sm">
