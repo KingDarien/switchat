@@ -765,6 +765,7 @@ export type Database = {
           current_rank: number | null
           display_name: string | null
           ethnicity: string | null
+          featured_post_id: string | null
           goals_completed: number | null
           id: string
           interests: string[] | null
@@ -800,6 +801,7 @@ export type Database = {
           current_rank?: number | null
           display_name?: string | null
           ethnicity?: string | null
+          featured_post_id?: string | null
           goals_completed?: number | null
           id?: string
           interests?: string[] | null
@@ -835,6 +837,7 @@ export type Database = {
           current_rank?: number | null
           display_name?: string | null
           ethnicity?: string | null
+          featured_post_id?: string | null
           goals_completed?: number | null
           id?: string
           interests?: string[] | null
@@ -857,6 +860,13 @@ export type Database = {
           website_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_featured_post_id_fkey"
+            columns: ["featured_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_niche_id_fkey"
             columns: ["niche_id"]
