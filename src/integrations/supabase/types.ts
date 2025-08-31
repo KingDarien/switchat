@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -1273,24 +1273,24 @@ export type Database = {
       }
       create_notification: {
         Args: {
-          target_user_id: string
-          notification_type: string
-          from_user_id?: string
-          post_id?: string
           comment_id?: string
-          title?: string
+          from_user_id?: string
           message?: string
+          notification_type: string
+          post_id?: string
+          target_user_id: string
+          title?: string
         }
         Returns: string
       }
       log_admin_action: {
         Args: {
           action_type_param: string
-          target_user_id_param?: string
-          target_resource_type_param?: string
-          target_resource_id_param?: string
           details_param?: Json
           reason_param?: string
+          target_resource_id_param?: string
+          target_resource_type_param?: string
+          target_user_id_param?: string
         }
         Returns: string
       }
@@ -1299,7 +1299,7 @@ export type Database = {
         Returns: undefined
       }
       verify_user: {
-        Args: { user_identifier: string; tier?: string }
+        Args: { tier?: string; user_identifier: string }
         Returns: undefined
       }
     }
