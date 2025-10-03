@@ -37,16 +37,25 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
 
     setLoading(true);
     try {
-      console.log('Creating room with user:', user.id);
+      // Validate session before creating room
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !sessionData.session) {
+        console.error('Session validation failed:', sessionError);
+        toast.error('Your session has expired. Please sign in again.');
+        setLoading(false);
+        return;
+      }
 
-      // Use user.id directly from the auth context which is already validated
+      console.log('Creating room with authenticated user:', sessionData.session.user.id);
+
       const { data, error } = await supabase
         .from('audio_rooms')
         .insert({
           title: title.trim(),
           description: description.trim() || null,
           topic: topic.trim() || null,
-          host_id: user.id,
+          host_id: sessionData.session.user.id,
           is_private: isPrivate,
           max_participants: maxParticipants,
         })
