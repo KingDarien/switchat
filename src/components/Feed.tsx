@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import PostCard from './PostCard';
 import CreatePost from './CreatePost';
 import UserSearch from './UserSearch';
-import FeedToggle, { FeedType } from './FeedToggle';
+import { FeedType } from './FeedToggle';
 import { LocationData } from './LocationPicker';
 import NewsCard from './NewsCard';
 import PullToRefresh from './PullToRefresh';
@@ -27,13 +27,31 @@ interface Post {
   profiles?: Profile;
 }
 
-const Feed = () => {
+interface FeedProps {
+  feedType?: FeedType;
+  selectedLocation?: LocationData;
+  onFeedTypeChange?: (type: FeedType) => void;
+  onLocationChange?: (location: LocationData) => void;
+}
+
+const Feed = ({ 
+  feedType: propFeedType, 
+  selectedLocation: propSelectedLocation,
+  onFeedTypeChange,
+  onLocationChange 
+}: FeedProps = {}) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [feedType, setFeedType] = useState<FeedType>('social');
-  const [selectedLocation, setSelectedLocation] = useState<LocationData>({ type: 'city', name: 'New York', state: 'New York' });
+  const [internalFeedType, setInternalFeedType] = useState<FeedType>('social');
+  const [internalSelectedLocation, setInternalSelectedLocation] = useState<LocationData>({ type: 'city', name: 'New York', state: 'New York' });
   const [newsArticles, setNewsArticles] = useState<any[]>([]);
   const [followingUserIds, setFollowingUserIds] = useState<string[]>([]);
+  
+  // Use props if provided, otherwise use internal state (for mobile compatibility)
+  const feedType = propFeedType ?? internalFeedType;
+  const selectedLocation = propSelectedLocation ?? internalSelectedLocation;
+  const setFeedType = onFeedTypeChange ?? setInternalFeedType;
+  const setSelectedLocation = onLocationChange ?? setInternalSelectedLocation;
 
   const fetchFollowingUsers = async () => {
     try {
@@ -232,13 +250,6 @@ const Feed = () => {
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="grid gap-6 lg:grid-cols-3">
       <div className="lg:col-span-2 space-y-6">
-        <FeedToggle 
-          feedType={feedType}
-          selectedLocation={selectedLocation}
-          onFeedTypeChange={setFeedType}
-          onLocationChange={setSelectedLocation}
-        />
-        
         {feedType !== 'news' && <CreatePost onPostCreated={fetchPosts} />}
         
         <div className="space-y-4 animate-fade-in">

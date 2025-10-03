@@ -18,19 +18,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Home, User, LogOut, Heart, MessageCircle, Search, Shield, Radio, Video } from 'lucide-react';
+import { Home, User, LogOut, Heart, MessageCircle, Search, Shield, Radio, Video, Globe, Building2, MapPin } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { FeedType } from '@/components/FeedToggle';
+import { LocationData } from '@/components/LocationPicker';
+import LocationPicker from '@/components/LocationPicker';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('feed');
+  const [feedType, setFeedType] = useState<FeedType>('social');
+  const [selectedLocation, setSelectedLocation] = useState<LocationData>({ type: 'city', name: 'New York', state: 'New York' });
 
   const handleSignOut = async () => {
     await signOut();
@@ -106,7 +111,12 @@ const Index = () => {
                   </div>
                 }>
                   <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
-                    <Feed />
+                    <Feed 
+                      feedType={feedType}
+                      selectedLocation={selectedLocation}
+                      onFeedTypeChange={setFeedType}
+                      onLocationChange={setSelectedLocation}
+                    />
                   </div>
                 </ErrorBoundary>,
                 <ErrorBoundary key="video" fallback={
@@ -135,18 +145,63 @@ const Index = () => {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          onClick={() => setActiveTab('feed')}
+                          onClick={() => {
+                            setActiveTab('feed');
+                            setFeedType('social');
+                          }}
                           className={`w-full flex items-center justify-center p-4 rounded-xl transition-all duration-300 ${
-                            activeTab === 'feed'
+                            activeTab === 'feed' && feedType === 'social'
                               ? 'bg-primary text-primary-foreground shadow-lg scale-105'
                               : 'hover:bg-muted/50 text-foreground'
                           }`}
                         >
-                          <Home className="h-6 w-6" />
+                          <Globe className="h-6 w-6" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="right">
-                        <p>Social Feed</p>
+                        <p>All Posts</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => {
+                            setActiveTab('feed');
+                            setFeedType('following');
+                          }}
+                          className={`w-full flex items-center justify-center p-4 rounded-xl transition-all duration-300 ${
+                            activeTab === 'feed' && feedType === 'following'
+                              ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                              : 'hover:bg-muted/50 text-foreground'
+                          }`}
+                        >
+                          <Building2 className="h-6 w-6" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Following</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => {
+                            setActiveTab('feed');
+                            setFeedType('news');
+                          }}
+                          className={`w-full flex items-center justify-center p-4 rounded-xl transition-all duration-300 ${
+                            activeTab === 'feed' && feedType === 'news'
+                              ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                              : 'hover:bg-muted/50 text-foreground'
+                          }`}
+                        >
+                          <MapPin className="h-6 w-6" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Local News</p>
                       </TooltipContent>
                     </Tooltip>
 
@@ -274,11 +329,33 @@ const Index = () => {
                         </div>
                       }>
                         <div className="max-w-3xl mx-auto px-6 py-8">
-                          <div className="mb-6">
-                            <h2 className="text-3xl font-bold mb-2">Social Feed</h2>
-                            <p className="text-muted-foreground">Stay connected with your community</p>
+                          <div className="mb-6 flex items-center justify-between">
+                            <div>
+                              <h2 className="text-3xl font-bold mb-2">
+                                {feedType === 'news' ? 'Local News' : feedType === 'following' ? 'Following' : 'Social Feed'}
+                              </h2>
+                              <p className="text-muted-foreground">
+                                {feedType === 'news' 
+                                  ? `News from ${selectedLocation.type === 'city' ? `${selectedLocation.name}, ${selectedLocation.state}` : selectedLocation.name}`
+                                  : feedType === 'following' 
+                                  ? 'Posts from people you follow'
+                                  : 'Stay connected with your community'
+                                }
+                              </p>
+                            </div>
+                            {feedType === 'news' && (
+                              <LocationPicker 
+                                selectedLocation={selectedLocation}
+                                onLocationChange={setSelectedLocation}
+                              />
+                            )}
                           </div>
-                          <Feed />
+                          <Feed 
+                            feedType={feedType}
+                            selectedLocation={selectedLocation}
+                            onFeedTypeChange={setFeedType}
+                            onLocationChange={setSelectedLocation}
+                          />
                         </div>
                       </ErrorBoundary>
                     )}
