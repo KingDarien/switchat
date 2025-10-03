@@ -154,11 +154,23 @@ const AudioFeed = () => {
       )
       .subscribe();
 
+    // Cleanup function to ensure user leaves room when component unmounts
     return () => {
       supabase.removeChannel(roomsChannel);
       supabase.removeChannel(memosChannel);
+      
+      // Leave room if user is in one when component unmounts
+      if (selectedRoom && user?.id) {
+        supabase
+          .from('room_participants')
+          .delete()
+          .match({ room_id: selectedRoom, user_id: user.id })
+          .then(() => {
+            livekit.leave();
+          });
+      }
     };
-  }, []);
+  }, [selectedRoom, user?.id]);
 
   const fetchAudioRooms = async () => {
     try {
@@ -220,15 +232,25 @@ const AudioFeed = () => {
 
   const joinRoom = async (roomId: string) => {
     try {
-      const { error } = await supabase
+      // First check if user is already in the room
+      const { data: existingParticipant } = await supabase
         .from('room_participants')
-        .insert({
-          room_id: roomId,
-          user_id: user?.id,
-          role: 'listener'
-        });
+        .select('*')
+        .match({ room_id: roomId, user_id: user?.id })
+        .maybeSingle();
 
-      if (error) throw error;
+      // If not already a participant, insert new record
+      if (!existingParticipant) {
+        const { error } = await supabase
+          .from('room_participants')
+          .insert({
+            room_id: roomId,
+            user_id: user?.id,
+            role: 'listener'
+          });
+
+        if (error) throw error;
+      }
 
       setSelectedRoom(roomId);
       setIsInRoom(true);
