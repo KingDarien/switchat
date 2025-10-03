@@ -138,7 +138,7 @@ const Index = () => {
                 {/* Left Sidebar Navigation - Compact Icon-Only */}
                 <aside className="w-24 fixed left-0 top-0 h-screen glass-effect border-r border-border/50 py-6 flex flex-col items-center z-30">
                   <div className="mb-8">
-                    <h1 className="text-xl font-bold gradient-text">SW</h1>
+                    <h1 className="text-xl font-bold gradient-text">switchat</h1>
                   </div>
 
                   <nav className="flex-1 space-y-2 w-full px-3">
