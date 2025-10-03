@@ -12,6 +12,7 @@ import { Mic, MicOff, Play, Pause, Volume2, Users, Plus, Hand, MoreVertical, Vol
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useLiveKit } from '@/hooks/useLiveKit';
 import AudioWaveform from './AudioWaveform';
@@ -92,7 +93,15 @@ const AudioFeed = () => {
         },
         (payload) => {
           console.log('New room created:', payload.new);
-          setAudioRooms(prev => [payload.new as AudioRoom, ...prev]);
+          const newRoom = payload.new as AudioRoom;
+          setAudioRooms(prev => [newRoom, ...prev]);
+          
+          // Show toast notification if room created by someone else
+          if (newRoom.host_id !== user?.id) {
+            sonnerToast.success('New audio room available!', {
+              description: newRoom.title
+            });
+          }
         }
       )
       .subscribe();
@@ -116,7 +125,7 @@ const AudioFeed = () => {
             .eq('user_id', newMemo.user_id)
             .single();
 
-          setVoiceMemos(prev => [{
+          const memoWithProfile = {
             ...newMemo,
             profiles: profile || {
               username: '',
@@ -124,7 +133,16 @@ const AudioFeed = () => {
               avatar_url: '',
               is_verified: false
             }
-          }, ...prev]);
+          };
+
+          setVoiceMemos(prev => [memoWithProfile, ...prev]);
+          
+          // Show toast notification if story created by someone else
+          if (newMemo.user_id !== user?.id) {
+            sonnerToast.success('New voice story available!', {
+              description: profile?.display_name || 'New story'
+            });
+          }
         }
       )
       .subscribe();
