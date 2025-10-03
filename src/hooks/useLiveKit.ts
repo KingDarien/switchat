@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from "react";
-import { Room, RoomEvent } from "livekit-client";
+import { Room, RoomEvent, RemoteParticipant } from "livekit-client";
 
 /**
  * Lightweight LiveKit client hook for joining/leaving and enabling audio playback.
@@ -12,6 +12,7 @@ export const useLiveKit = () => {
   const [connected, setConnected] = useState(false);
   const [isSpeaker, setIsSpeaker] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [activeSpeakers, setActiveSpeakers] = useState<string[]>([]);
 
   const connect = useCallback(async (wsUrl: string, token: string, publishMic = false) => {
     // Disconnect any existing room
@@ -42,6 +43,12 @@ export const useLiveKit = () => {
     room.on(RoomEvent.ParticipantDisconnected, (p) => console.log("Participant disconnected:", p.identity));
     room.on(RoomEvent.TrackSubscribed, (_track, pub, p) => {
       console.log("Subscribed to track:", pub.trackSid, "from", p.identity);
+    });
+
+    // Track active speakers
+    room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+      const speakerIds = speakers.map(s => s.identity);
+      setActiveSpeakers(speakerIds);
     });
 
     await room.connect(wsUrl, token);
@@ -89,5 +96,6 @@ export const useLiveKit = () => {
     connected,
     isSpeaker,
     isMuted,
+    activeSpeakers,
   };
 };

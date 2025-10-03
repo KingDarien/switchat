@@ -83,6 +83,7 @@ const AudioFeed = () => {
   // LiveKit integration
   const livekit = useLiveKit();
   const [needsAudioStart, setNeedsAudioStart] = useState(false);
+  const [currentRoom, setCurrentRoom] = useState<AudioRoom | null>(null);
 
   useEffect(() => {
     fetchAudioRooms();
@@ -154,10 +155,32 @@ const AudioFeed = () => {
       )
       .subscribe();
 
+    // Subscribe to room participants changes
+    const participantsChannel = selectedRoom ? supabase
+      .channel(`room-participants-${selectedRoom}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'room_participants',
+          filter: `room_id=eq.${selectedRoom}`
+        },
+        () => {
+          if (selectedRoom) {
+            fetchRoomParticipants(selectedRoom);
+          }
+        }
+      )
+      .subscribe() : null;
+
     // Cleanup function to ensure user leaves room when component unmounts
     return () => {
       supabase.removeChannel(roomsChannel);
       supabase.removeChannel(memosChannel);
+      if (participantsChannel) {
+        supabase.removeChannel(participantsChannel);
+      }
       
       // Leave room if user is in one when component unmounts
       if (selectedRoom && user?.id) {
@@ -255,6 +278,7 @@ const AudioFeed = () => {
       setSelectedRoom(roomId);
       setIsInRoom(true);
       setUserRole('listener');
+      setCurrentRoom(audioRooms.find(r => r.id === roomId) || null);
       fetchRoomParticipants(roomId);
       
       // Request LiveKit token and connect as listener
@@ -319,6 +343,7 @@ const AudioFeed = () => {
       setSelectedRoom(null);
       setIsInRoom(false);
       setUserRole('listener');
+      setCurrentRoom(null);
       setRoomParticipants([]);
       setNeedsAudioStart(false);
       
@@ -467,6 +492,44 @@ const AudioFeed = () => {
     } catch (error) {
       console.error('Error transferring ownership:', error);
       sonnerToast.error('Failed to transfer ownership');
+    }
+  };
+
+  const muteParticipant = async (participantId: string, userId: string) => {
+    if (!selectedRoom || currentRoom?.host_id !== user?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('room_participants')
+        .update({ is_muted: true })
+        .eq('id', participantId);
+
+      if (error) throw error;
+      
+      await fetchRoomParticipants(selectedRoom);
+      sonnerToast.success('Participant muted');
+    } catch (error) {
+      console.error('Error muting participant:', error);
+      sonnerToast.error('Failed to mute participant');
+    }
+  };
+
+  const removeParticipant = async (participantId: string, userId: string) => {
+    if (!selectedRoom || currentRoom?.host_id !== user?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('room_participants')
+        .delete()
+        .eq('id', participantId);
+
+      if (error) throw error;
+      
+      await fetchRoomParticipants(selectedRoom);
+      sonnerToast.success('Participant removed from room');
+    } catch (error) {
+      console.error('Error removing participant:', error);
+      sonnerToast.error('Failed to remove participant');
     }
   };
 
@@ -677,76 +740,187 @@ const AudioFeed = () => {
               </div>
 
               {/* Speaker Grid */}
-              <div className="flex-1 p-6">
-                <div className="h-full flex flex-col items-center justify-center">
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
-                    {roomParticipants
-                      .filter(p => p.role === 'host' || p.role === 'speaker')
-                      .map((participant) => (
-                        <div key={participant.id} className="flex flex-col items-center">
-                          <div className="relative">
-                            <Avatar className="h-16 w-16 ring-4 ring-primary/20">
-                              <AvatarImage src={participant.profiles?.avatar_url} />
-                              <AvatarFallback>
-                                {participant.profiles?.display_name?.[0] || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            {participant.is_muted && (
-                              <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1">
-                                <MicOff className="h-2 w-2 text-white" />
+              <div className="flex-1 p-6 overflow-y-auto">
+                <div className="max-w-5xl mx-auto">
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-muted-foreground mb-4">Speakers</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                      {roomParticipants
+                        .filter(p => p.role === 'host' || p.role === 'speaker')
+                        .map((participant) => {
+                          const isSpeaking = livekit.activeSpeakers.includes(participant.user_id);
+                          const isHost = currentRoom?.host_id === user?.id;
+                          
+                          return (
+                            <div key={participant.id} className="flex flex-col items-center group">
+                              <div className="relative">
+                                <Avatar className={cn(
+                                  "h-20 w-20 ring-4 transition-all duration-300",
+                                  isSpeaking 
+                                    ? "ring-green-500 ring-offset-4 ring-offset-background scale-110" 
+                                    : "ring-primary/20"
+                                )}>
+                                  <AvatarImage src={participant.profiles?.avatar_url} />
+                                  <AvatarFallback>
+                                    {participant.profiles?.display_name?.[0] || 'U'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                
+                                {isSpeaking && (
+                                  <div className="absolute inset-0 rounded-full bg-green-500/20 animate-pulse" />
+                                )}
+                                
+                                {participant.is_muted && (
+                                  <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1.5 shadow-lg">
+                                    <MicOff className="h-3 w-3 text-white" />
+                                  </div>
+                                )}
+                                
+                                {participant.hand_raised && (
+                                  <div className="absolute -top-1 -left-1 bg-yellow-500 rounded-full p-1.5 shadow-lg animate-bounce">
+                                    <Hand className="h-3 w-3 text-white" />
+                                  </div>
+                                )}
+                                
+                                {participant.role === 'host' && (
+                                  <Badge className="absolute -top-2 -right-2 text-xs bg-primary">Host</Badge>
+                                )}
+
+                                {/* Host Controls */}
+                                {isHost && participant.user_id !== user?.id && (
+                                  <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-7 w-7 p-0 hover:bg-white/20"
+                                      onClick={() => muteParticipant(participant.id, participant.user_id)}
+                                    >
+                                      <Volume className="h-4 w-4 text-white" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-7 w-7 p-0 hover:bg-white/20"
+                                      onClick={() => removeParticipant(participant.id, participant.user_id)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-white" />
+                                    </Button>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {participant.role === 'host' && (
-                              <Badge className="absolute -top-2 -right-2 text-xs">Host</Badge>
-                            )}
-                          </div>
-                          <p className="text-sm font-medium mt-2 text-center">
-                            {participant.profiles?.display_name || participant.profiles?.username}
-                          </p>
-                        </div>
-                      ))}
+                              <p className="text-sm font-medium mt-2 text-center">
+                                {participant.profiles?.display_name || participant.profiles?.username}
+                              </p>
+                              {isSpeaking && (
+                                <Badge variant="secondary" className="text-xs mt-1 bg-green-500/20 text-green-700 dark:text-green-400">
+                                  Speaking
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
                   </div>
 
-                  {/* Listeners Count */}
-                  <div className="text-center mb-6">
-                    <p className="text-sm text-muted-foreground">
-                      {roomParticipants.filter(p => p.role === 'listener').length} listeners
-                    </p>
-                  </div>
+                  {/* Listeners */}
+                  {roomParticipants.filter(p => p.role === 'listener').length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-muted-foreground mb-4">
+                        Listeners ({roomParticipants.filter(p => p.role === 'listener').length})
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {roomParticipants
+                          .filter(p => p.role === 'listener')
+                          .map((participant) => {
+                            const isHost = currentRoom?.host_id === user?.id;
+                            
+                            return (
+                              <div key={participant.id} className="relative group">
+                                <Avatar className="h-10 w-10 ring-2 ring-muted">
+                                  <AvatarImage src={participant.profiles?.avatar_url} />
+                                  <AvatarFallback className="text-xs">
+                                    {participant.profiles?.display_name?.[0] || 'U'}
+                                  </AvatarFallback>
+                                </Avatar>
+                                
+                                {participant.hand_raised && (
+                                  <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-1 shadow-lg animate-bounce">
+                                    <Hand className="h-2 w-2 text-white" />
+                                  </div>
+                                )}
+
+                                {/* Host Controls for listeners */}
+                                {isHost && participant.user_id !== user?.id && (
+                                  <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0 hover:bg-white/20"
+                                      onClick={() => removeParticipant(participant.id, participant.user_id)}
+                                    >
+                                      <Trash2 className="h-3 w-3 text-white" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Room Controls */}
               <div className="p-4 border-t bg-background/50">
-                <div className="flex items-center justify-center gap-4">
-                  {userRole === 'speaker' && (
+                <div className="flex items-center justify-center gap-3">
+                  {/* Mic Control - Show for everyone */}
+                  <div className="flex flex-col items-center gap-1">
                     <Button
                       size="lg"
                       variant={isMuted ? "destructive" : "default"}
                       onClick={toggleMute}
-                      className="rounded-full w-12 h-12"
+                      className="rounded-full w-14 h-14 shadow-lg"
+                      disabled={userRole === 'listener'}
                     >
-                      {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                      {isMuted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
                     </Button>
-                  )}
+                    <span className="text-xs text-muted-foreground">
+                      {userRole === 'listener' ? 'Listening' : isMuted ? 'Muted' : 'Live'}
+                    </span>
+                  </div>
 
-                  <Button
-                    size="lg"
-                    variant={handRaised ? "default" : "outline"}
-                    onClick={toggleHandRaise}
-                    className="rounded-full w-12 h-12"
-                  >
-                    <Hand className="h-5 w-5" />
-                  </Button>
+                  {/* Hand Raise */}
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      size="lg"
+                      variant={handRaised ? "default" : "outline"}
+                      onClick={toggleHandRaise}
+                      className={cn(
+                        "rounded-full w-14 h-14 shadow-lg transition-all",
+                        handRaised && "bg-yellow-500 hover:bg-yellow-600 animate-bounce"
+                      )}
+                    >
+                      <Hand className="h-6 w-6" />
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      {handRaised ? 'Hand up' : 'Raise hand'}
+                    </span>
+                  </div>
 
-                  <Button size="lg" variant="outline" className="rounded-full w-12 h-12">
-                    <Volume2 className="h-5 w-5" />
-                  </Button>
+                  {/* Volume Control */}
+                  <div className="flex flex-col items-center gap-1">
+                    <Button size="lg" variant="outline" className="rounded-full w-14 h-14 shadow-lg">
+                      <Volume2 className="h-6 w-6" />
+                    </Button>
+                    <span className="text-xs text-muted-foreground">Volume</span>
+                  </div>
 
+                  {/* Enable Audio Button */}
                   {needsAudioStart && (
                     <Button
                       size="lg"
-                      className="rounded-full"
+                      className="rounded-full px-6 shadow-lg"
                       onClick={async () => {
                         try {
                           await livekit.startAudio();
