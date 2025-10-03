@@ -1037,7 +1037,7 @@ const AudioFeed = () => {
                           <p className="text-xs text-muted-foreground truncate">{room.topic}</p>
                           {room.profiles && (
                             <p className="text-xs text-muted-foreground mt-0.5">
-                              Host: <span className="font-medium">{room.profiles.display_name || room.profiles.username}</span>
+                              Host: <span className="font-medium">@{room.profiles.username}</span>
                             </p>
                           )}
                           <div className="flex items-center gap-2 mt-1">
