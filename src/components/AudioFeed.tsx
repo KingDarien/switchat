@@ -1231,20 +1231,8 @@ const AudioFeed = () => {
               </div>
             </>
           ) : (
-            /* Welcome Screen */
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center max-w-md">
-                <div className="space-y-3">
-                  <Button className="w-full gap-2" onClick={() => setShowCreateRoom(true)}>
-                    <Plus className="h-4 w-4" />
-                    Start a Room
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    Or select a live room from the sidebar to join
-                  </p>
-                </div>
-              </div>
-            </div>
+            /* Empty state when not in room */
+            <div className="flex-1"></div>
           )}
         </div>
       </div>
