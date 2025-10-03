@@ -121,7 +121,7 @@ const Index = () => {
               {/* Left Sidebar Navigation */}
               <aside className="w-72 fixed left-0 top-0 h-screen glass-effect border-r border-border/50 p-6 flex flex-col z-30">
                 <div className="mb-8">
-                  <h1 className="text-2xl font-bold gradient-text">Your App</h1>
+                  <h1 className="text-2xl font-bold gradient-text">SWITCHAT</h1>
                   <p className="text-sm text-muted-foreground mt-1">Connect & Share</p>
                 </div>
 
