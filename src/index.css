@@ -8,59 +8,67 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 240 20% 99%;
+    --foreground: 240 10% 4%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 10% 4%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 10% 4%;
 
-    --primary: 226 64% 45%;
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
 
-    --accent: 160 70% 45%;
+    --accent: 270 75% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 226 64% 45%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 262 83% 58%;
 
     /* Brand Colors */
-    --brand-primary: 226 64% 45%;
-    --brand-gradient: linear-gradient(135deg, hsl(226 64% 45%), hsl(270 65% 70%));
-    --success: 154 70% 50%;
-    --warning: 43 100% 70%;
+    --brand-primary: 262 83% 58%;
+    --brand-secondary: 280 65% 60%;
+    --brand-accent: 170 75% 50%;
+    --brand-gradient: linear-gradient(135deg, hsl(262 83% 58%), hsl(280 65% 60%));
+    --brand-gradient-reverse: linear-gradient(135deg, hsl(280 65% 60%), hsl(262 83% 58%));
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
     --info: 199 89% 48%;
     
     /* Verification Tier Colors */
-    --diamond: 194 100% 85%;
-    --gold: 51 100% 50%;
-    --silver: 0 0% 75%;
-    --bronze: 25 75% 47%;
+    --diamond: 190 90% 70%;
+    --gold: 45 93% 58%;
+    --silver: 0 0% 65%;
+    --bronze: 25 70% 55%;
     
     /* News Categories */
-    --local-news: 154 70% 50%;
-    --state-news: 214 100% 50%;
-    --city-news: 43 100% 70%;
+    --local-news: 142 76% 36%;
+    --state-news: 217 91% 60%;
+    --city-news: 38 92% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
     
-    /* Shadows & Depth */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1);
+    /* Modern Shadows & Depth */
+    --shadow-sm: 0 1px 2px 0 hsl(240 10% 4% / 0.05);
+    --shadow-md: 0 4px 12px -2px hsl(240 10% 4% / 0.08);
+    --shadow-lg: 0 10px 30px -5px hsl(240 10% 4% / 0.12);
+    --shadow-xl: 0 20px 40px -10px hsl(240 10% 4% / 0.16);
+    --shadow-glow: 0 0 30px hsl(262 83% 58% / 0.3);
+    
+    /* Glass Effects */
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 240 6% 90% / 0.5;
 
     --sidebar-background: 0 0% 98%;
 
@@ -80,57 +88,65 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 10% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 226 70% 60%;
+    --primary: 262 83% 65%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 160 70% 50%;
+    --accent: 270 75% 65%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 226 70% 60%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 262 83% 65%;
 
     /* Brand Colors Dark Mode */
-    --brand-primary: 226 70% 60%;
-    --brand-gradient: linear-gradient(135deg, hsl(226 70% 60%), hsl(270 65% 70%));
-    --success: 154 70% 45%;
-    --warning: 43 100% 60%;
+    --brand-primary: 262 83% 65%;
+    --brand-secondary: 280 65% 65%;
+    --brand-accent: 170 75% 55%;
+    --brand-gradient: linear-gradient(135deg, hsl(262 83% 65%), hsl(280 65% 65%));
+    --brand-gradient-reverse: linear-gradient(135deg, hsl(280 65% 65%), hsl(262 83% 65%));
+    --success: 142 76% 45%;
+    --warning: 38 92% 60%;
     --info: 199 89% 58%;
     
     /* Verification Tier Colors Dark Mode */
-    --diamond: 194 100% 75%;
-    --gold: 51 100% 60%;
-    --silver: 0 0% 65%;
-    --bronze: 25 75% 57%;
+    --diamond: 190 90% 75%;
+    --gold: 45 93% 65%;
+    --silver: 0 0% 70%;
+    --bronze: 25 70% 60%;
     
     /* News Categories Dark Mode */
-    --local-news: 154 70% 45%;
-    --state-news: 214 100% 60%;
-    --city-news: 43 100% 60%;
+    --local-news: 142 76% 45%;
+    --state-news: 217 91% 65%;
+    --city-news: 38 92% 60%;
     
-    /* Shadows & Depth Dark Mode */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.6);
+    /* Modern Shadows & Depth Dark Mode */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.5);
+    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.6);
+    --shadow-lg: 0 10px 30px -5px hsl(0 0% 0% / 0.7);
+    --shadow-xl: 0 20px 40px -10px hsl(0 0% 0% / 0.8);
+    --shadow-glow: 0 0 40px hsl(262 83% 65% / 0.4);
+    
+    /* Glass Effects Dark Mode */
+    --glass-bg: 240 10% 8% / 0.7;
+    --glass-border: 240 4% 16% / 0.5;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -154,6 +170,18 @@ All colors MUST be HSL.
   
   .pulse {
     @apply animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite];
+  }
+  
+  .glass-effect {
+    @apply bg-background/70 backdrop-blur-xl border border-white/10;
+  }
+  
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+  
+  .modern-card {
+    @apply rounded-2xl bg-card border border-border/50 shadow-lg hover:shadow-xl transition-all duration-300;
   }
   
   /* Ensure dropdowns are always on top */

@@ -57,7 +57,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <Navbar />
       <div className="relative">
         <LiveStatusBanner />
@@ -69,7 +69,8 @@ const Index = () => {
                 // Audio Feed
                 <ErrorBoundary key="audio" fallback={
                   <div className="h-screen flex items-center justify-center bg-background">
-                    <div className="text-center">
+                    <div className="text-center space-y-2">
+                      <div className="text-4xl">🎙️</div>
                       <p className="text-muted-foreground">Audio feed unavailable</p>
                     </div>
                   </div>
@@ -79,19 +80,21 @@ const Index = () => {
                 // Main Feed
                 <ErrorBoundary key="main" fallback={
                   <div className="h-screen flex items-center justify-center bg-background">
-                    <div className="text-center">
+                    <div className="text-center space-y-2">
+                      <div className="text-4xl">📱</div>
                       <p className="text-muted-foreground">Feed unavailable</p>
                     </div>
                   </div>
                 }>
-                  <div className="max-w-6xl mx-auto p-4 pb-20">
+                  <div className="max-w-2xl mx-auto px-4 py-6 pb-24">
                     <Feed />
                   </div>
                 </ErrorBoundary>,
                 // Video Feed
                 <ErrorBoundary key="video" fallback={
                   <div className="h-screen flex items-center justify-center bg-background">
-                    <div className="text-center">
+                    <div className="text-center space-y-2">
+                      <div className="text-4xl">🎥</div>
                       <p className="text-muted-foreground">Video feed unavailable</p>
                     </div>
                   </div>
@@ -102,36 +105,51 @@ const Index = () => {
             </SwipeContainer>
           ) : (
             // Desktop: Tab navigation
-            <div className="w-full">
+            <div className="w-full min-h-screen">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 border-b border-border shadow-sm">
-                  <TabsList className="w-full max-w-6xl mx-auto justify-start rounded-none h-14 bg-transparent p-0 gap-1">
-                    <TabsTrigger 
-                      value="audio" 
-                      className="flex-1 gap-2 h-full rounded-none relative data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none hover:bg-muted/50 transition-colors after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-300 font-medium"
-                    >
-                      <span className="text-lg">🎙️</span> Audio
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="feed" 
-                      className="flex-1 gap-2 h-full rounded-none relative data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none hover:bg-muted/50 transition-colors after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-300 font-medium"
-                    >
-                      <span className="text-lg">📱</span> Feed
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="video" 
-                      className="flex-1 gap-2 h-full rounded-none relative data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none hover:bg-muted/50 transition-colors after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-300 font-medium"
-                    >
-                      <span className="text-lg">🎥</span> Video
-                    </TabsTrigger>
-                  </TabsList>
+                <div className="sticky top-0 z-20 glass-effect border-b border-border/50 shadow-md">
+                  <div className="max-w-7xl mx-auto px-4">
+                    <TabsList className="w-full justify-center bg-transparent h-16 p-0 gap-2">
+                      <TabsTrigger 
+                        value="audio" 
+                        className="group relative px-8 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-300 font-semibold text-base"
+                      >
+                        <span className="text-xl mr-2">🎙️</span> 
+                        <span className="relative">
+                          Audio Rooms
+                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-foreground group-data-[state=active]:w-full transition-all duration-300"></span>
+                        </span>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="feed" 
+                        className="group relative px-8 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-300 font-semibold text-base"
+                      >
+                        <span className="text-xl mr-2">📱</span> 
+                        <span className="relative">
+                          Social Feed
+                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-foreground group-data-[state=active]:w-full transition-all duration-300"></span>
+                        </span>
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="video" 
+                        className="group relative px-8 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-300 font-semibold text-base"
+                      >
+                        <span className="text-xl mr-2">🎥</span> 
+                        <span className="relative">
+                          Video Shorts
+                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-foreground group-data-[state=active]:w-full transition-all duration-300"></span>
+                        </span>
+                      </TabsTrigger>
+                    </TabsList>
+                  </div>
                 </div>
                 
                 <TabsContent value="audio" className="mt-0 animate-fade-in">
                   <ErrorBoundary fallback={
-                    <div className="h-screen flex items-center justify-center bg-background">
-                      <div className="text-center">
-                        <p className="text-muted-foreground">Audio feed unavailable</p>
+                    <div className="h-screen flex items-center justify-center">
+                      <div className="text-center space-y-3">
+                        <div className="text-6xl">🎙️</div>
+                        <p className="text-xl font-medium text-muted-foreground">Audio feed unavailable</p>
                       </div>
                     </div>
                   }>
@@ -141,13 +159,14 @@ const Index = () => {
 
                 <TabsContent value="feed" className="mt-0 animate-fade-in">
                   <ErrorBoundary fallback={
-                    <div className="h-screen flex items-center justify-center bg-background">
-                      <div className="text-center">
-                        <p className="text-muted-foreground">Feed unavailable</p>
+                    <div className="h-screen flex items-center justify-center">
+                      <div className="text-center space-y-3">
+                        <div className="text-6xl">📱</div>
+                        <p className="text-xl font-medium text-muted-foreground">Feed unavailable</p>
                       </div>
                     </div>
                   }>
-                    <div className="max-w-6xl mx-auto p-4 pb-20">
+                    <div className="max-w-3xl mx-auto px-4 py-8 pb-24">
                       <Feed />
                     </div>
                   </ErrorBoundary>
@@ -155,9 +174,10 @@ const Index = () => {
 
                 <TabsContent value="video" className="mt-0 animate-fade-in">
                   <ErrorBoundary fallback={
-                    <div className="h-screen flex items-center justify-center bg-background">
-                      <div className="text-center">
-                        <p className="text-muted-foreground">Video feed unavailable</p>
+                    <div className="h-screen flex items-center justify-center">
+                      <div className="text-center space-y-3">
+                        <div className="text-6xl">🎥</div>
+                        <p className="text-xl font-medium text-muted-foreground">Video feed unavailable</p>
                       </div>
                     </div>
                   }>

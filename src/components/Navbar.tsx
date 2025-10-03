@@ -45,18 +45,18 @@ const Navbar = () => {
   if (!user) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg">
-      <div className="w-full px-3 py-2.5">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-effect border-t border-border/50 shadow-xl">
+      <div className="w-full px-4 py-3">
         <div className="flex items-center justify-center w-full">
-          <div className="flex items-center justify-around w-full max-w-2xl mx-auto">
+          <div className="flex items-center justify-around w-full max-w-2xl mx-auto gap-2">
             <Link to="/">
               <Button
                 variant={isActive('/') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-1.5 px-2 transition-all hover:scale-105"
+                className="flex flex-col items-center gap-1.5 h-auto py-2 px-4 transition-all hover:scale-110 hover:shadow-md rounded-2xl"
               >
-                <Home className="h-4 w-4" />
-                <span className="text-xs font-medium">Home</span>
+                <Home className="h-5 w-5" />
+                <span className="text-xs font-semibold">Home</span>
               </Button>
             </Link>
             
@@ -64,10 +64,10 @@ const Navbar = () => {
               <Button
                 variant={isActive(`/profile/${user?.id}`) ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-1.5 px-2 transition-all hover:scale-105"
+                className="flex flex-col items-center gap-1.5 h-auto py-2 px-4 transition-all hover:scale-110 hover:shadow-md rounded-2xl"
               >
-                <User className="h-4 w-4" />
-                <span className="text-xs font-medium">Profile</span>
+                <User className="h-5 w-5" />
+                <span className="text-xs font-semibold">Profile</span>
               </Button>
             </Link>
             
@@ -75,10 +75,10 @@ const Navbar = () => {
               <Button
                 variant={isActive('/explore') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-1.5 px-2 transition-all hover:scale-105"
+                className="flex flex-col items-center gap-1.5 h-auto py-2 px-4 transition-all hover:scale-110 hover:shadow-md rounded-2xl"
               >
-                <Search className="h-4 w-4" />
-                <span className="text-xs font-medium">Explore</span>
+                <Search className="h-5 w-5" />
+                <span className="text-xs font-semibold">Explore</span>
               </Button>
             </Link>
             
@@ -86,10 +86,10 @@ const Navbar = () => {
               <Button
                 variant={isActive('/notifications') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-1.5 px-2 transition-all hover:scale-105"
+                className="flex flex-col items-center gap-1.5 h-auto py-2 px-4 transition-all hover:scale-110 hover:shadow-md rounded-2xl"
               >
-                <Heart className="h-4 w-4" />
-                <span className="text-xs font-medium">Notifications</span>
+                <Heart className="h-5 w-5" />
+                <span className="text-xs font-semibold">Activity</span>
               </Button>
             </Link>
             
@@ -97,26 +97,26 @@ const Navbar = () => {
               <Button
                 variant={isActive(isAdmin ? '/messages' : '/conversations') ? 'default' : 'ghost'}
                 size="sm"
-                className="flex flex-col items-center gap-1 h-auto py-1.5 px-2 transition-all hover:scale-105"
+                className="flex flex-col items-center gap-1.5 h-auto py-2 px-4 transition-all hover:scale-110 hover:shadow-md rounded-2xl"
               >
-                {isAdmin ? <Shield className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
-                <span className="text-xs font-medium">{isAdmin ? 'Admin' : 'Messages'}</span>
+                {isAdmin ? <Shield className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+                <span className="text-xs font-semibold">{isAdmin ? 'Admin' : 'Chat'}</span>
               </Button>
             </Link>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-auto py-1.5 px-2 flex flex-col items-center gap-1 transition-all hover:scale-105">
-                  <Avatar className="h-4 w-4">
+                <Button variant="ghost" className="relative h-auto py-2 px-4 flex flex-col items-center gap-1.5 transition-all hover:scale-110 hover:shadow-md rounded-2xl">
+                  <Avatar className="h-5 w-5 ring-2 ring-primary/20">
                     <AvatarImage src="" />
-                    <AvatarFallback className="text-[10px]">
+                    <AvatarFallback className="text-[10px] bg-gradient-to-br from-primary to-accent text-primary-foreground">
                       {user.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-xs font-medium">More</span>
+                  <span className="text-xs font-semibold">Menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 mb-2 z-[100] bg-popover border-border" align="end" forceMount>
+              <DropdownMenuContent className="w-56 mb-3 z-[100] glass-effect border-border/50 rounded-2xl shadow-2xl" align="end" forceMount>
                 <DropdownMenuItem className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user.email}</p>
