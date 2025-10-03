@@ -21,10 +21,6 @@ interface Profile {
   display_name: string;
   bio: string;
   avatar_url: string;
-  website_url: string;
-  location: string;
-  birthday: string;
-  ethnicity: string;
   interests: string[];
   user_role: string;
   is_verified: boolean;
@@ -34,8 +30,17 @@ interface Profile {
   background_music_title: string;
 }
 
+interface PrivateData {
+  website_url: string;
+  location: string;
+  birthday: string;
+  ethnicity: string;
+  social_links: Record<string, string>;
+}
+
 const Settings = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [privateData, setPrivateData] = useState<PrivateData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { user } = useAuth();
@@ -48,14 +53,34 @@ const Settings = () => {
 
   const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch public profile data
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user?.id)
         .single();
 
-      if (error) throw error;
-      setProfile(data);
+      if (profileError) throw profileError;
+      setProfile(profileData);
+
+      // Fetch private data
+      const { data: privateDataResult, error: privateError } = await supabase
+        .from('profile_private_data')
+        .select('*')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (privateError && privateError.code !== 'PGRST116') {
+        console.error('Error fetching private data:', privateError);
+      } else if (privateDataResult) {
+        setPrivateData({
+          website_url: privateDataResult.website_url || '',
+          location: privateDataResult.location || '',
+          birthday: privateDataResult.birthday || '',
+          ethnicity: privateDataResult.ethnicity || '',
+          social_links: (privateDataResult.social_links as Record<string, string>) || {},
+        });
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast.error('Failed to load profile');
@@ -69,15 +94,12 @@ const Settings = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
+      // Update public profile data
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           display_name: profile.display_name,
           bio: profile.bio,
-          website_url: profile.website_url,
-          location: profile.location,
-          birthday: profile.birthday,
-          ethnicity: profile.ethnicity,
           interests: profile.interests,
           background_theme: profile.background_theme,
           background_music_url: profile.background_music_url,
@@ -85,7 +107,24 @@ const Settings = () => {
         })
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Update private data
+      if (privateData) {
+        const { error: privateError } = await supabase
+          .from('profile_private_data')
+          .upsert({
+            user_id: user.id,
+            website_url: privateData.website_url,
+            location: privateData.location,
+            birthday: privateData.birthday,
+            ethnicity: privateData.ethnicity,
+            social_links: privateData.social_links,
+          });
+
+        if (privateError) throw privateError;
+      }
+
       toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -228,8 +267,8 @@ const Settings = () => {
                 <Label htmlFor="website">Website</Label>
                 <Input
                   id="website"
-                  value={profile.website_url || ''}
-                  onChange={(e) => setProfile({ ...profile, website_url: e.target.value })}
+                  value={privateData?.website_url || ''}
+                  onChange={(e) => setPrivateData({ ...privateData!, website_url: e.target.value })}
                   placeholder="https://..."
                 />
               </div>
@@ -246,8 +285,8 @@ const Settings = () => {
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
-                  value={profile.location || ''}
-                  onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                  value={privateData?.location || ''}
+                  onChange={(e) => setPrivateData({ ...privateData!, location: e.target.value })}
                   placeholder="Enter your location..."
                 />
               </div>
@@ -257,8 +296,8 @@ const Settings = () => {
                 <Input
                   id="birthday"
                   type="date"
-                  value={profile.birthday || ''}
-                  onChange={(e) => setProfile({ ...profile, birthday: e.target.value })}
+                  value={privateData?.birthday || ''}
+                  onChange={(e) => setPrivateData({ ...privateData!, birthday: e.target.value })}
                 />
               </div>
 
@@ -266,8 +305,8 @@ const Settings = () => {
                 <Label htmlFor="ethnicity">Ethnicity</Label>
                 <Input
                   id="ethnicity"
-                  value={profile.ethnicity || ''}
-                  onChange={(e) => setProfile({ ...profile, ethnicity: e.target.value })}
+                  value={privateData?.ethnicity || ''}
+                  onChange={(e) => setPrivateData({ ...privateData!, ethnicity: e.target.value })}
                 />
               </div>
 

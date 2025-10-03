@@ -33,10 +33,6 @@ interface Profile {
   trust_score: number;
   goals_completed: number;
   total_contributions_made: number;
-  location: string;
-  website_url: string;
-  birthday: string;
-  ethnicity: string;
   background_theme: any;
   background_music_url: string;
   background_music_title: string;
@@ -46,6 +42,13 @@ interface Profile {
     name: string;
     icon: string;
   };
+}
+
+interface PrivateData {
+  location: string;
+  website_url: string;
+  birthday: string;
+  ethnicity: string;
 }
 
 interface Post {
@@ -68,6 +71,7 @@ interface Community {
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [privateData, setPrivateData] = useState<PrivateData | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [videoPosts, setVideoPosts] = useState<Post[]>([]);
   const [communities, setCommunities] = useState<Community[]>([]);
@@ -107,6 +111,24 @@ const UserProfile = () => {
       }
 
       setProfile(profileData);
+
+      // Fetch private data only if viewing own profile
+      if (user?.id === userId) {
+        const { data: privateDataResult } = await supabase
+          .from('profile_private_data')
+          .select('*')
+          .eq('user_id', userId)
+          .single();
+
+        if (privateDataResult) {
+          setPrivateData({
+            location: privateDataResult.location || '',
+            website_url: privateDataResult.website_url || '',
+            birthday: privateDataResult.birthday || '',
+            ethnicity: privateDataResult.ethnicity || '',
+          });
+        }
+      }
 
       // Fetch user's posts
       const { data: postsData, error: postsError } = await supabase
@@ -391,33 +413,33 @@ const UserProfile = () => {
                     <p className="text-muted-foreground">{profile.bio}</p>
                   )}
                   
-                  {/* Personal Info */}
+                  {/* Personal Info - Only show if viewing own profile */}
                   <div className="flex flex-wrap gap-3">
-                    {profile.location && (
+                    {privateData?.location && (
                       <Badge variant="outline" className="text-xs">
                         <MapPin className="h-3 w-3 mr-1" />
-                        {profile.location}
+                        {privateData.location}
                       </Badge>
                     )}
                     
-                    {profile.ethnicity && (
+                    {privateData?.ethnicity && (
                       <Badge variant="outline" className="text-xs">
                         <Heart className="h-3 w-3 mr-1" />
-                        {profile.ethnicity}
+                        {privateData.ethnicity}
                       </Badge>
                     )}
                     
-                    {profile.birthday && (
+                    {privateData?.birthday && (
                       <Badge variant="outline" className="text-xs">
                         <Cake className="h-3 w-3 mr-1" />
-                        {formatBirthday(profile.birthday)}
+                        {formatBirthday(privateData.birthday)}
                       </Badge>
                     )}
                     
-                    {profile.website_url && (
+                    {privateData?.website_url && (
                       <Badge variant="outline" className="text-xs">
                         <Globe className="h-3 w-3 mr-1" />
-                        <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                        <a href={privateData.website_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
                           Website
                         </a>
                       </Badge>

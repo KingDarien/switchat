@@ -23,9 +23,6 @@ interface Profile {
   bio: string;
   avatar_url: string;
   niche_id: string;
-  location: string;
-  website_url: string;
-  social_links: Record<string, string>;
   background_theme: {
     type: 'solid' | 'gradient' | 'image';
     colors: string[];
@@ -33,6 +30,12 @@ interface Profile {
   };
   background_music_url: string;
   background_music_title: string;
+}
+
+interface PrivateData {
+  location: string;
+  website_url: string;
+  social_links: Record<string, string>;
 }
 
 interface Niche {
@@ -49,15 +52,17 @@ const Profile = () => {
     bio: '',
     avatar_url: '',
     niche_id: '',
-    location: '',
-    website_url: '',
-    social_links: {},
     background_theme: {
       type: 'solid',
       colors: ['#1a1a1a', '#2a2a2a']
     },
     background_music_url: '',
     background_music_title: '',
+  });
+  const [privateData, setPrivateData] = useState<PrivateData>({
+    location: '',
+    website_url: '',
+    social_links: {},
   });
   const [niches, setNiches] = useState<Niche[]>([]);
   const [loading, setLoading] = useState(false);
@@ -102,15 +107,29 @@ const Profile = () => {
           bio: data.bio || '',
           avatar_url: data.avatar_url || '',
           niche_id: data.niche_id || '',
-          location: data.location || '',
-          website_url: data.website_url || '',
-          social_links: (data.social_links as Record<string, string>) || {},
           background_theme: (data.background_theme as any) || {
             type: 'solid',
             colors: ['#1a1a1a', '#2a2a2a']
           },
           background_music_url: data.background_music_url || '',
           background_music_title: data.background_music_title || '',
+        });
+      }
+
+      // Fetch private data
+      const { data: privateDataResult, error: privateError } = await supabase
+        .from('profile_private_data')
+        .select('*')
+        .eq('user_id', user!.id)
+        .single();
+
+      if (privateError && privateError.code !== 'PGRST116') {
+        console.error('Error fetching private data:', privateError);
+      } else if (privateDataResult) {
+        setPrivateData({
+          location: privateDataResult.location || '',
+          website_url: privateDataResult.website_url || '',
+          social_links: (privateDataResult.social_links as Record<string, string>) || {},
         });
       }
     } catch (error: any) {
@@ -127,7 +146,8 @@ const Profile = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
+      // Update public profile
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           username: profile.username,
@@ -135,17 +155,28 @@ const Profile = () => {
           bio: profile.bio,
           avatar_url: profile.avatar_url,
           niche_id: profile.niche_id || null,
-          location: profile.location,
-          website_url: profile.website_url,
-          social_links: profile.social_links,
           background_theme: profile.background_theme,
           background_music_url: profile.background_music_url,
           background_music_title: profile.background_music_title,
         })
         .eq('user_id', user!.id);
 
-      if (error) {
-        throw error;
+      if (profileError) {
+        throw profileError;
+      }
+
+      // Update private data
+      const { error: privateError } = await supabase
+        .from('profile_private_data')
+        .upsert({
+          user_id: user!.id,
+          location: privateData.location,
+          website_url: privateData.website_url,
+          social_links: privateData.social_links,
+        });
+
+      if (privateError) {
+        throw privateError;
       }
 
       toast({
@@ -378,8 +409,8 @@ const Profile = () => {
                   <Input
                     id="location"
                     placeholder="City, Country"
-                    value={profile.location}
-                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    value={privateData.location}
+                    onChange={(e) => setPrivateData({ ...privateData, location: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -387,8 +418,8 @@ const Profile = () => {
                   <Input
                     id="website"
                     placeholder="https://yourwebsite.com"
-                    value={profile.website_url}
-                    onChange={(e) => handleInputChange('website_url', e.target.value)}
+                    value={privateData.website_url}
+                    onChange={(e) => setPrivateData({ ...privateData, website_url: e.target.value })}
                   />
                 </div>
               </div>
