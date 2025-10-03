@@ -44,7 +44,7 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('audio_rooms')
         .insert({
           title: title.trim(),
@@ -52,18 +52,11 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
           topic: topic.trim() || null,
           is_private: isPrivate,
           max_participants: maxParticipants,
-        } as any)
-        .select()
-        .maybeSingle();
+        } as any);
 
       if (error) {
         console.error('Error creating room:', error);
-        const msg = (error.message || '').toLowerCase();
-        if (msg.includes('row-level security') || msg.includes('permission denied') || msg.includes('unauthorized')) {
-          toast.error('Session issue — please sign in again and retry.');
-        } else {
-          toast.error(error.message || 'Failed to create room. Please try again.');
-        }
+        toast.error(error.message || 'Failed to create room. Please try again.');
         return;
       }
 
