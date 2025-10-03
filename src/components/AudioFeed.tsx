@@ -1249,9 +1249,13 @@ const AudioFeed = () => {
                                   <div className="absolute inset-0 rounded-full bg-green-500/20 animate-pulse" />
                                 )}
                                 
-                                {participant.is_muted && (
+                                {participant.is_muted ? (
                                   <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full p-1.5 shadow-lg">
                                     <MicOff className="h-3 w-3 text-white" />
+                                  </div>
+                                ) : isSpeaking && (
+                                  <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1.5 shadow-lg animate-pulse">
+                                    <Mic className="h-3 w-3 text-white" />
                                   </div>
                                 )}
                                 
