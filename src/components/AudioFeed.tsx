@@ -1234,16 +1234,6 @@ const AudioFeed = () => {
             /* Welcome Screen */
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center max-w-md">
-                <div className="mb-6">
-                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Mic className="h-10 w-10 text-primary" />
-                  </div>
-                  <h2 className="text-2xl font-bold mb-2">Welcome to Audio Space</h2>
-                  <p className="text-muted-foreground">
-                    Join live conversations or listen to voice stories from the community
-                  </p>
-                </div>
-                
                 <div className="space-y-3">
                   <Button className="w-full gap-2" onClick={() => setShowCreateRoom(true)}>
                     <Plus className="h-4 w-4" />
