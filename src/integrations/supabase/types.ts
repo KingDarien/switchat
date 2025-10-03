@@ -769,6 +769,7 @@ export type Database = {
           goals_completed: number | null
           id: string
           interests: string[] | null
+          is_profile_public: boolean | null
           is_protected: boolean | null
           is_verified: boolean | null
           last_login_at: string | null
@@ -805,6 +806,7 @@ export type Database = {
           goals_completed?: number | null
           id?: string
           interests?: string[] | null
+          is_profile_public?: boolean | null
           is_protected?: boolean | null
           is_verified?: boolean | null
           last_login_at?: string | null
@@ -841,6 +843,7 @@ export type Database = {
           goals_completed?: number | null
           id?: string
           interests?: string[] | null
+          is_profile_public?: boolean | null
           is_protected?: boolean | null
           is_verified?: boolean | null
           last_login_at?: string | null
