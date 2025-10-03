@@ -858,7 +858,7 @@ const AudioFeed = () => {
                 onClick={() => setShowCreateStory(true)}
               >
                 <Mic className="h-3 w-3" />
-                Record
+                Start Voice Story
               </Button>
             </div>
             <ScrollArea className="h-full">
