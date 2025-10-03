@@ -36,6 +36,12 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
       return;
     }
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast.error('Session expired — please sign in and try again.');
+      return;
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -46,14 +52,18 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
           topic: topic.trim() || null,
           is_private: isPrivate,
           max_participants: maxParticipants,
-          host_id: user.id,
         } as any)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error creating room:', error);
-        toast.error(error.message || 'Failed to create room. Please try again.');
+        const msg = (error.message || '').toLowerCase();
+        if (msg.includes('row-level security') || msg.includes('permission denied') || msg.includes('unauthorized')) {
+          toast.error('Session issue — please sign in again and retry.');
+        } else {
+          toast.error(error.message || 'Failed to create room. Please try again.');
+        }
         return;
       }
 

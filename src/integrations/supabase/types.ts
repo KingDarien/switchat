@@ -68,7 +68,7 @@ export type Database = {
           created_at?: string
           current_participants?: number | null
           description?: string | null
-          host_id: string
+          host_id?: string
           id?: string
           is_active?: boolean
           is_private?: boolean
