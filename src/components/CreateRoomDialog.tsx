@@ -46,6 +46,7 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
           topic: topic.trim() || null,
           is_private: isPrivate,
           max_participants: maxParticipants,
+          host_id: user.id,
         } as any)
         .select()
         .single();
