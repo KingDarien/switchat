@@ -166,9 +166,54 @@ const AudioFeed = () => {
           table: 'room_participants',
           filter: `room_id=eq.${selectedRoom}`
         },
-        () => {
+        async (payload) => {
           if (selectedRoom) {
             fetchRoomParticipants(selectedRoom);
+            
+            // If current user's role was changed, update local state and reconnect
+            if (payload.eventType === 'UPDATE' && payload.new && 
+                (payload.new as any).user_id === user?.id) {
+              const newRole = (payload.new as any).role;
+              
+              if (newRole === 'speaker' && userRole === 'listener') {
+                // Promoted to speaker - reconnect with mic permissions
+                setUserRole('speaker');
+                sonnerToast.success('You\'ve been promoted to speaker!', {
+                  description: 'You can now unmute your microphone'
+                });
+                
+                // Reconnect to LiveKit with speaker permissions
+                try {
+                  await livekit.leave();
+                  const { data: tokenData } = await supabase.functions.invoke('livekit-token', {
+                    body: { roomId: selectedRoom, asSpeaker: true }
+                  });
+                  if (tokenData?.token && tokenData?.wsUrl) {
+                    await livekit.connect(tokenData.wsUrl, tokenData.token, true);
+                  }
+                } catch (error) {
+                  console.error('Error reconnecting as speaker:', error);
+                }
+              } else if (newRole === 'listener' && userRole === 'speaker') {
+                // Demoted to listener
+                setUserRole('listener');
+                setIsMuted(true);
+                sonnerToast.info('You\'ve been moved to listener');
+                
+                // Reconnect without mic permissions
+                try {
+                  await livekit.leave();
+                  const { data: tokenData } = await supabase.functions.invoke('livekit-token', {
+                    body: { roomId: selectedRoom, asSpeaker: false }
+                  });
+                  if (tokenData?.token && tokenData?.wsUrl) {
+                    await livekit.connect(tokenData.wsUrl, tokenData.token, false);
+                  }
+                } catch (error) {
+                  console.error('Error reconnecting as listener:', error);
+                }
+              }
+            }
           }
         }
       )
@@ -533,6 +578,44 @@ const AudioFeed = () => {
     }
   };
 
+  const promoteToSpeaker = async (participantId: string, userId: string) => {
+    if (!selectedRoom || currentRoom?.host_id !== user?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('room_participants')
+        .update({ role: 'speaker', is_muted: false })
+        .eq('id', participantId);
+
+      if (error) throw error;
+      
+      await fetchRoomParticipants(selectedRoom);
+      sonnerToast.success('Participant promoted to speaker');
+    } catch (error) {
+      console.error('Error promoting participant:', error);
+      sonnerToast.error('Failed to promote participant');
+    }
+  };
+
+  const demoteToListener = async (participantId: string, userId: string) => {
+    if (!selectedRoom || currentRoom?.host_id !== user?.id) return;
+    
+    try {
+      const { error } = await supabase
+        .from('room_participants')
+        .update({ role: 'listener', is_muted: true })
+        .eq('id', participantId);
+
+      if (error) throw error;
+      
+      await fetchRoomParticipants(selectedRoom);
+      sonnerToast.success('Participant demoted to listener');
+    } catch (error) {
+      console.error('Error demoting participant:', error);
+      sonnerToast.error('Failed to demote participant');
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
@@ -794,6 +877,7 @@ const AudioFeed = () => {
                                       variant="ghost"
                                       className="h-7 w-7 p-0 hover:bg-white/20"
                                       onClick={() => muteParticipant(participant.id, participant.user_id)}
+                                      title="Mute participant"
                                     >
                                       <Volume className="h-4 w-4 text-white" />
                                     </Button>
@@ -801,7 +885,17 @@ const AudioFeed = () => {
                                       size="sm"
                                       variant="ghost"
                                       className="h-7 w-7 p-0 hover:bg-white/20"
+                                      onClick={() => demoteToListener(participant.id, participant.user_id)}
+                                      title="Demote to listener"
+                                    >
+                                      <UserCog className="h-4 w-4 text-white" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-7 w-7 p-0 hover:bg-white/20"
                                       onClick={() => removeParticipant(participant.id, participant.user_id)}
+                                      title="Remove from room"
                                     >
                                       <Trash2 className="h-4 w-4 text-white" />
                                     </Button>
@@ -851,12 +945,22 @@ const AudioFeed = () => {
 
                                 {/* Host Controls for listeners */}
                                 {isHost && participant.user_id !== user?.id && (
-                                  <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <div className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-0.5">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0 hover:bg-white/20"
+                                      onClick={() => promoteToSpeaker(participant.id, participant.user_id)}
+                                      title="Promote to speaker"
+                                    >
+                                      <Mic className="h-3 w-3 text-white" />
+                                    </Button>
                                     <Button
                                       size="sm"
                                       variant="ghost"
                                       className="h-6 w-6 p-0 hover:bg-white/20"
                                       onClick={() => removeParticipant(participant.id, participant.user_id)}
+                                      title="Remove from room"
                                     >
                                       <Trash2 className="h-3 w-3 text-white" />
                                     </Button>
