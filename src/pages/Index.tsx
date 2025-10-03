@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Navbar from '@/components/Navbar';
@@ -9,13 +9,27 @@ import AudioFeed from '@/components/AudioFeed';
 import SwipeContainer from '@/components/SwipeContainer';
 import LiveStatusBanner from '@/components/LiveStatusBanner';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Home, User, LogOut, Heart, MessageCircle, Search, Shield } from 'lucide-react';
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('feed');
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   useEffect(() => {
     if (!loading && !user) {
@@ -47,7 +61,7 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div>Loading...</div>
+        <div className="text-lg font-medium">Loading...</div>
       </div>
     );
   }
@@ -58,17 +72,17 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <Navbar />
+      {isMobile && <Navbar />}
+      
       <div className="relative">
         <LiveStatusBanner />
         <ErrorBoundary>
           {isMobile ? (
-            // Mobile: Swipe navigation
+            // Mobile: Bottom nav with swipe feeds
             <SwipeContainer>
               {[
-                // Audio Feed
                 <ErrorBoundary key="audio" fallback={
-                  <div className="h-screen flex items-center justify-center bg-background">
+                  <div className="h-screen flex items-center justify-center">
                     <div className="text-center space-y-2">
                       <div className="text-4xl">🎙️</div>
                       <p className="text-muted-foreground">Audio feed unavailable</p>
@@ -77,9 +91,8 @@ const Index = () => {
                 }>
                   <AudioFeed />
                 </ErrorBoundary>,
-                // Main Feed
                 <ErrorBoundary key="main" fallback={
-                  <div className="h-screen flex items-center justify-center bg-background">
+                  <div className="h-screen flex items-center justify-center">
                     <div className="text-center space-y-2">
                       <div className="text-4xl">📱</div>
                       <p className="text-muted-foreground">Feed unavailable</p>
@@ -90,9 +103,8 @@ const Index = () => {
                     <Feed />
                   </div>
                 </ErrorBoundary>,
-                // Video Feed
                 <ErrorBoundary key="video" fallback={
-                  <div className="h-screen flex items-center justify-center bg-background">
+                  <div className="h-screen flex items-center justify-center">
                     <div className="text-center space-y-2">
                       <div className="text-4xl">🎥</div>
                       <p className="text-muted-foreground">Video feed unavailable</p>
@@ -104,87 +116,162 @@ const Index = () => {
               ]}
             </SwipeContainer>
           ) : (
-            // Desktop: Tab navigation
-            <div className="w-full min-h-screen">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="sticky top-0 z-20 glass-effect border-b border-border/50 shadow-md">
-                  <div className="max-w-7xl mx-auto px-4">
-                    <TabsList className="w-full justify-center bg-transparent h-16 p-0 gap-2">
-                      <TabsTrigger 
-                        value="audio" 
-                        className="group relative px-8 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-300 font-semibold text-base"
-                      >
-                        <span className="text-xl mr-2">🎙️</span> 
-                        <span className="relative">
-                          Audio Rooms
-                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-foreground group-data-[state=active]:w-full transition-all duration-300"></span>
-                        </span>
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="feed" 
-                        className="group relative px-8 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-300 font-semibold text-base"
-                      >
-                        <span className="text-xl mr-2">📱</span> 
-                        <span className="relative">
-                          Social Feed
-                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-foreground group-data-[state=active]:w-full transition-all duration-300"></span>
-                        </span>
-                      </TabsTrigger>
-                      <TabsTrigger 
-                        value="video" 
-                        className="group relative px-8 py-3 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=inactive]:hover:bg-muted/50 transition-all duration-300 font-semibold text-base"
-                      >
-                        <span className="text-xl mr-2">🎥</span> 
-                        <span className="relative">
-                          Video Shorts
-                          <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary-foreground group-data-[state=active]:w-full transition-all duration-300"></span>
-                        </span>
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
+            // Desktop: Sidebar + Main content layout
+            <div className="flex min-h-screen">
+              {/* Left Sidebar Navigation */}
+              <aside className="w-72 fixed left-0 top-0 h-screen glass-effect border-r border-border/50 p-6 flex flex-col z-30">
+                <div className="mb-8">
+                  <h1 className="text-2xl font-bold gradient-text">Your App</h1>
+                  <p className="text-sm text-muted-foreground mt-1">Connect & Share</p>
                 </div>
-                
-                <TabsContent value="audio" className="mt-0 animate-fade-in">
-                  <ErrorBoundary fallback={
-                    <div className="h-screen flex items-center justify-center">
-                      <div className="text-center space-y-3">
-                        <div className="text-6xl">🎙️</div>
-                        <p className="text-xl font-medium text-muted-foreground">Audio feed unavailable</p>
-                      </div>
-                    </div>
-                  }>
-                    <AudioFeed />
-                  </ErrorBoundary>
-                </TabsContent>
 
-                <TabsContent value="feed" className="mt-0 animate-fade-in">
-                  <ErrorBoundary fallback={
-                    <div className="h-screen flex items-center justify-center">
-                      <div className="text-center space-y-3">
-                        <div className="text-6xl">📱</div>
-                        <p className="text-xl font-medium text-muted-foreground">Feed unavailable</p>
-                      </div>
-                    </div>
-                  }>
-                    <div className="max-w-3xl mx-auto px-4 py-8 pb-24">
-                      <Feed />
-                    </div>
-                  </ErrorBoundary>
-                </TabsContent>
+                <nav className="flex-1 space-y-2">
+                  <button
+                    onClick={() => setActiveTab('feed')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 ${
+                      activeTab === 'feed'
+                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                        : 'hover:bg-muted/50 text-foreground'
+                    }`}
+                  >
+                    <span className="text-2xl">📱</span>
+                    <span className="font-semibold text-base">Social Feed</span>
+                  </button>
 
-                <TabsContent value="video" className="mt-0 animate-fade-in">
-                  <ErrorBoundary fallback={
-                    <div className="h-screen flex items-center justify-center">
-                      <div className="text-center space-y-3">
-                        <div className="text-6xl">🎥</div>
-                        <p className="text-xl font-medium text-muted-foreground">Video feed unavailable</p>
+                  <button
+                    onClick={() => setActiveTab('audio')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 ${
+                      activeTab === 'audio'
+                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                        : 'hover:bg-muted/50 text-foreground'
+                    }`}
+                  >
+                    <span className="text-2xl">🎙️</span>
+                    <span className="font-semibold text-base">Audio Rooms</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('video')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 ${
+                      activeTab === 'video'
+                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                        : 'hover:bg-muted/50 text-foreground'
+                    }`}
+                  >
+                    <span className="text-2xl">🎥</span>
+                    <span className="font-semibold text-base">Video Shorts</span>
+                  </button>
+
+                  <div className="pt-4 mt-4 border-t border-border/50">
+                    <Link to="/explore">
+                      <button className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-muted/50 transition-all duration-300 text-foreground">
+                        <Search className="h-5 w-5" />
+                        <span className="font-semibold text-base">Explore</span>
+                      </button>
+                    </Link>
+
+                    <Link to="/notifications">
+                      <button className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-muted/50 transition-all duration-300 text-foreground">
+                        <Heart className="h-5 w-5" />
+                        <span className="font-semibold text-base">Activity</span>
+                      </button>
+                    </Link>
+
+                    <Link to={`/profile/${user?.id}`}>
+                      <button className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-muted/50 transition-all duration-300 text-foreground">
+                        <User className="h-5 w-5" />
+                        <span className="font-semibold text-base">Profile</span>
+                      </button>
+                    </Link>
+                  </div>
+                </nav>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="w-full justify-start gap-3 py-6 rounded-xl hover:bg-muted/50">
+                      <Avatar className="h-10 w-10 ring-2 ring-primary/20">
+                        <AvatarImage src="" />
+                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
+                          {user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 text-left">
+                        <p className="text-sm font-semibold truncate">{user.email?.split('@')[0]}</p>
+                        <p className="text-xs text-muted-foreground">View profile</p>
                       </div>
-                    </div>
-                  }>
-                    <VideoFeed />
-                  </ErrorBoundary>
-                </TabsContent>
-              </Tabs>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 mb-2 glass-effect border-border/50 rounded-2xl shadow-2xl" align="end">
+                    <DropdownMenuItem className="font-normal py-3">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium">{user.email}</p>
+                        <p className="text-xs text-muted-foreground">Signed in</p>
+                      </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/settings" className="w-full cursor-pointer py-2">
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="py-2">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </aside>
+
+              {/* Main Content Area */}
+              <main className="flex-1 ml-72">
+                <div className="min-h-screen">
+                  {activeTab === 'feed' && (
+                    <ErrorBoundary fallback={
+                      <div className="h-screen flex items-center justify-center">
+                        <div className="text-center space-y-3">
+                          <div className="text-6xl">📱</div>
+                          <p className="text-xl font-medium text-muted-foreground">Feed unavailable</p>
+                        </div>
+                      </div>
+                    }>
+                      <div className="max-w-3xl mx-auto px-6 py-8">
+                        <div className="mb-6">
+                          <h2 className="text-3xl font-bold mb-2">Social Feed</h2>
+                          <p className="text-muted-foreground">Stay connected with your community</p>
+                        </div>
+                        <Feed />
+                      </div>
+                    </ErrorBoundary>
+                  )}
+
+                  {activeTab === 'audio' && (
+                    <ErrorBoundary fallback={
+                      <div className="h-screen flex items-center justify-center">
+                        <div className="text-center space-y-3">
+                          <div className="text-6xl">🎙️</div>
+                          <p className="text-xl font-medium text-muted-foreground">Audio feed unavailable</p>
+                        </div>
+                      </div>
+                    }>
+                      <AudioFeed />
+                    </ErrorBoundary>
+                  )}
+
+                  {activeTab === 'video' && (
+                    <ErrorBoundary fallback={
+                      <div className="h-screen flex items-center justify-center">
+                        <div className="text-center space-y-3">
+                          <div className="text-6xl">🎥</div>
+                          <p className="text-xl font-medium text-muted-foreground">Video feed unavailable</p>
+                        </div>
+                      </div>
+                    }>
+                      <VideoFeed />
+                    </ErrorBoundary>
+                  )}
+                </div>
+              </main>
             </div>
           )}
         </ErrorBoundary>
