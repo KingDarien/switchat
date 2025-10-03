@@ -523,7 +523,14 @@ const AudioFeed = () => {
 
     // Create new audio element and play
     try {
-      const audio = new Audio(memo.audio_url);
+      const audio = new Audio();
+      
+      // Set crossOrigin to anonymous to handle CORS
+      audio.crossOrigin = "anonymous";
+      
+      // Preload the audio
+      audio.preload = "auto";
+      
       audioRef.current = audio;
 
       audio.onended = () => {
@@ -531,23 +538,33 @@ const AudioFeed = () => {
         audioRef.current = null;
       };
 
-      audio.onerror = () => {
+      audio.onerror = (e) => {
+        console.error('Audio error:', e);
         toast({
           title: "Error",
-          description: "Failed to play audio",
+          description: "Failed to play audio. The format may not be supported.",
           variant: "destructive",
         });
         setPlayingMemo(null);
         audioRef.current = null;
       };
 
+      audio.onloadeddata = () => {
+        console.log('Audio loaded successfully');
+      };
+
+      // Set the source after setting up event listeners
+      audio.src = memo.audio_url;
+      
+      // Try to load and play
+      await audio.load();
       await audio.play();
       setPlayingMemo(memoId);
     } catch (error) {
       console.error('Error playing audio:', error);
       toast({
         title: "Error",
-        description: "Failed to play audio",
+        description: "Failed to play audio. Try re-recording.",
         variant: "destructive",
       });
       setPlayingMemo(null);
