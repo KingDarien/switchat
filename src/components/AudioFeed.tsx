@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CreateRoomDialog from './CreateRoomDialog';
 import VoiceStoryDialog from './VoiceStoryDialog';
 import { Button } from '@/components/ui/button';
@@ -79,6 +79,9 @@ const AudioFeed = () => {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
   const [selectedNewHost, setSelectedNewHost] = useState<string | null>(null);
+
+  // Audio playback for voice memos
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // LiveKit integration
   const livekit = useLiveKit();
@@ -488,12 +491,60 @@ const AudioFeed = () => {
     }
   };
 
-  const playVoiceMemo = (memoId: string) => {
-    if (playingMemo === memoId) {
+  const playVoiceMemo = async (memoId: string) => {
+    const memo = voiceMemos.find(m => m.id === memoId);
+    if (!memo?.audio_url) {
+      toast({
+        title: "Error",
+        description: "Audio file not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // If clicking the same memo that's playing, pause it
+    if (playingMemo === memoId && audioRef.current) {
+      audioRef.current.pause();
       setPlayingMemo(null);
-    } else {
+      return;
+    }
+
+    // Stop any currently playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    // Create new audio element and play
+    try {
+      const audio = new Audio(memo.audio_url);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setPlayingMemo(null);
+        audioRef.current = null;
+      };
+
+      audio.onerror = () => {
+        toast({
+          title: "Error",
+          description: "Failed to play audio",
+          variant: "destructive",
+        });
+        setPlayingMemo(null);
+        audioRef.current = null;
+      };
+
+      await audio.play();
       setPlayingMemo(memoId);
-      // Here you would implement actual audio playback
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      toast({
+        title: "Error",
+        description: "Failed to play audio",
+        variant: "destructive",
+      });
+      setPlayingMemo(null);
     }
   };
 
