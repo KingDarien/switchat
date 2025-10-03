@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Navbar from '@/components/Navbar';
+import switchatLogo from '@/assets/switchat-logo.png';
 import Feed from '@/components/Feed';
 import VideoFeed from '@/components/VideoFeed';
 import AudioFeed from '@/components/AudioFeed';
@@ -137,8 +138,8 @@ const Index = () => {
               <div className="flex min-h-screen">
                 {/* Left Sidebar Navigation - Compact Icon-Only */}
                 <aside className="w-24 fixed left-0 top-0 h-screen glass-effect border-r border-border/50 py-6 flex flex-col items-center z-30">
-                  <div className="mb-8">
-                    <h1 className="text-xl font-bold gradient-text">switchat</h1>
+                  <div className="mb-8 px-2">
+                    <img src={switchatLogo} alt="Switchat" className="w-16 h-16 object-contain" />
                   </div>
 
                   <nav className="flex-1 space-y-2 w-full px-3">
