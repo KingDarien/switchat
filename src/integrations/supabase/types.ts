@@ -796,11 +796,9 @@ export type Database = {
           banned_at: string | null
           banned_by: string | null
           bio: string | null
-          birthday: string | null
           created_at: string
           current_rank: number | null
           display_name: string | null
-          ethnicity: string | null
           featured_post_id: string | null
           goals_completed: number | null
           id: string
@@ -809,12 +807,10 @@ export type Database = {
           is_protected: boolean | null
           is_verified: boolean | null
           last_login_at: string | null
-          location: string | null
           niche_id: string | null
           popularity_score: number | null
           requires_approval: boolean | null
           security_level: number | null
-          social_links: Json | null
           total_contributions_made: number | null
           trust_score: number | null
           updated_at: string
@@ -822,7 +818,6 @@ export type Database = {
           user_role: string | null
           username: string | null
           verification_tier: string | null
-          website_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -833,11 +828,9 @@ export type Database = {
           banned_at?: string | null
           banned_by?: string | null
           bio?: string | null
-          birthday?: string | null
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
-          ethnicity?: string | null
           featured_post_id?: string | null
           goals_completed?: number | null
           id?: string
@@ -846,12 +839,10 @@ export type Database = {
           is_protected?: boolean | null
           is_verified?: boolean | null
           last_login_at?: string | null
-          location?: string | null
           niche_id?: string | null
           popularity_score?: number | null
           requires_approval?: boolean | null
           security_level?: number | null
-          social_links?: Json | null
           total_contributions_made?: number | null
           trust_score?: number | null
           updated_at?: string
@@ -859,7 +850,6 @@ export type Database = {
           user_role?: string | null
           username?: string | null
           verification_tier?: string | null
-          website_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -870,11 +860,9 @@ export type Database = {
           banned_at?: string | null
           banned_by?: string | null
           bio?: string | null
-          birthday?: string | null
           created_at?: string
           current_rank?: number | null
           display_name?: string | null
-          ethnicity?: string | null
           featured_post_id?: string | null
           goals_completed?: number | null
           id?: string
@@ -883,12 +871,10 @@ export type Database = {
           is_protected?: boolean | null
           is_verified?: boolean | null
           last_login_at?: string | null
-          location?: string | null
           niche_id?: string | null
           popularity_score?: number | null
           requires_approval?: boolean | null
           security_level?: number | null
-          social_links?: Json | null
           total_contributions_made?: number | null
           trust_score?: number | null
           updated_at?: string
@@ -896,7 +882,6 @@ export type Database = {
           user_role?: string | null
           username?: string | null
           verification_tier?: string | null
-          website_url?: string | null
         }
         Relationships: [
           {
