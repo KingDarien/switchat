@@ -307,28 +307,41 @@ const AudioFeed = () => {
         .match({ room_id: roomId, user_id: user?.id })
         .maybeSingle();
 
-      // If not already a participant, insert new record
+      // Get room details to check if user is the host
+      const { data: room } = await supabase
+        .from('audio_rooms')
+        .select('host_id')
+        .eq('id', roomId)
+        .single();
+
+      const isHost = room?.host_id === user?.id;
+      let participantRole: 'speaker' | 'listener' = isHost ? 'speaker' : 'listener';
+
+      // If not already a participant, insert new record with appropriate role
       if (!existingParticipant) {
         const { error } = await supabase
           .from('room_participants')
           .insert({
             room_id: roomId,
             user_id: user?.id,
-            role: 'listener'
+            role: participantRole
           });
 
         if (error) throw error;
+      } else {
+        // If already a participant, use their existing role
+        participantRole = existingParticipant.role as 'speaker' | 'listener';
       }
 
       setSelectedRoom(roomId);
       setIsInRoom(true);
-      setUserRole('listener');
+      setUserRole(participantRole);
       setCurrentRoom(audioRooms.find(r => r.id === roomId) || null);
       fetchRoomParticipants(roomId);
       
-      // Request LiveKit token and connect as listener
+      // Request LiveKit token and connect with appropriate permissions
       const { data: tokenData, error: tokenError } = await supabase.functions.invoke('livekit-token', {
-        body: { roomId, asSpeaker: false }
+        body: { roomId, asSpeaker: participantRole === 'speaker' }
       });
 
       if (tokenError || !tokenData?.token || !tokenData?.wsUrl) {
@@ -341,7 +354,7 @@ const AudioFeed = () => {
       }
 
       try {
-        await livekit.connect(tokenData.wsUrl, tokenData.token, false);
+        await livekit.connect(tokenData.wsUrl, tokenData.token, participantRole === 'speaker');
         // Attempt to start audio; if blocked, show helper button
         try {
           await livekit.startAudio();
@@ -358,8 +371,8 @@ const AudioFeed = () => {
       }
 
       toast({
-        title: "Joined room",
-        description: "You're now listening to the conversation",
+        title: isHost ? "Room started" : "Joined room",
+        description: isHost ? "You're now live as the host" : "You're now listening to the conversation",
       });
     } catch (error) {
       console.error('Error joining room:', error);

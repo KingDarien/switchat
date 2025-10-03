@@ -44,7 +44,7 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
 
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { data: newRoom, error } = await supabase
         .from('audio_rooms')
         .insert({
           title: title.trim(),
@@ -52,12 +52,29 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
           topic: topic.trim() || null,
           is_private: isPrivate,
           max_participants: maxParticipants,
-        } as any);
+        } as any)
+        .select()
+        .single();
 
       if (error) {
         console.error('Error creating room:', error);
         toast.error(error.message || 'Failed to create room. Please try again.');
         return;
+      }
+
+      // Add creator as speaker participant immediately
+      if (newRoom) {
+        const { error: participantError } = await supabase
+          .from('room_participants')
+          .insert({
+            room_id: newRoom.id,
+            user_id: user.id,
+            role: 'speaker'
+          });
+
+        if (participantError) {
+          console.error('Error adding creator as speaker:', participantError);
+        }
       }
 
       toast.success('Audio room created successfully!');
