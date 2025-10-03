@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
+import { Plus } from 'lucide-react';
 
 interface CreateRoomDialogProps {
   open: boolean;
@@ -73,74 +74,88 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Create Audio Room</DialogTitle>
+          <DialogTitle className="text-2xl">🎙️ Start Your Live Room</DialogTitle>
           <DialogDescription>
-            Start a live audio conversation for people to join and participate in.
+            Create a Clubhouse-style audio room where people can join and have live conversations.
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
+          {/* Room Privacy - Most Important Feature */}
+          <div className="p-4 rounded-lg border-2 border-primary/20 bg-primary/5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label htmlFor="private" className="text-base font-semibold flex items-center gap-2">
+                  {isPrivate ? '🔒 Private Room' : '🌍 Public Room'}
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {isPrivate 
+                    ? 'Only invited users can join this room' 
+                    : 'Anyone can discover and join this room'}
+                </p>
+              </div>
+              <Switch
+                id="private"
+                checked={isPrivate}
+                onCheckedChange={setIsPrivate}
+                className="data-[state=checked]:bg-primary"
+              />
+            </div>
+          </div>
+
           <div>
-            <Label htmlFor="title">Room Title *</Label>
+            <Label htmlFor="title" className="text-base">Room Title *</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter room title..."
+              placeholder="What's your room about?"
               maxLength={100}
+              className="mt-1.5"
             />
           </div>
 
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description (Optional)</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe what this room is about..."
+              placeholder="What will you talk about?"
               maxLength={500}
               rows={3}
+              className="mt-1.5"
             />
           </div>
 
-          <div>
-            <Label htmlFor="topic">Topic/Category</Label>
-            <Input
-              id="topic"
-              value={topic}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder="e.g., Business, Technology, Music..."
-              maxLength={50}
-            />
-          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="topic">Topic</Label>
+              <Input
+                id="topic"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="e.g., Tech, Music..."
+                maxLength={50}
+                className="mt-1.5"
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="maxParticipants">Max Participants</Label>
-            <Input
-              id="maxParticipants"
-              type="number"
-              value={maxParticipants}
-              onChange={(e) => setMaxParticipants(parseInt(e.target.value) || 50)}
-              min={2}
-              max={500}
-            />
+            <div>
+              <Label htmlFor="maxParticipants">Max People</Label>
+              <Input
+                id="maxParticipants"
+                type="number"
+                value={maxParticipants}
+                onChange={(e) => setMaxParticipants(parseInt(e.target.value) || 50)}
+                min={2}
+                max={500}
+                className="mt-1.5"
+              />
+            </div>
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="private"
-              checked={isPrivate}
-              onCheckedChange={setIsPrivate}
-            />
-            <Label htmlFor="private">Private Room</Label>
-          </div>
-          {isPrivate && (
-            <p className="text-sm text-muted-foreground">
-              Only invited users will be able to join this room
-            </p>
-          )}
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">
@@ -150,8 +165,10 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
           <Button 
             onClick={handleCreateRoom} 
             disabled={!title.trim() || loading}
+            className="gap-2 bg-gradient-to-r from-primary to-accent hover:shadow-lg"
           >
-            {loading ? 'Creating...' : 'Create Room'}
+            <Plus className="h-4 w-4" />
+            {loading ? 'Creating...' : `Go Live ${isPrivate ? '🔒' : '🌍'}`}
           </Button>
         </div>
       </DialogContent>

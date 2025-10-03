@@ -413,9 +413,13 @@ const AudioFeed = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Live conversations & voice stories</p>
           </div>
-          <Button size="sm" className="gap-2 shadow-sm hover:scale-105 transition-transform" onClick={() => setShowCreateRoom(true)}>
-            <Plus className="h-4 w-4" />
-            Create Room
+          <Button 
+            size="lg" 
+            className="gap-2 shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-accent hover:scale-105 transition-all font-semibold" 
+            onClick={() => setShowCreateRoom(true)}
+          >
+            <Plus className="h-5 w-5" />
+            Start Live Room
           </Button>
         </div>
       </div>
@@ -425,10 +429,21 @@ const AudioFeed = () => {
         <div className="w-full lg:w-80 border-r bg-background/50 flex flex-col overflow-hidden">
           {/* Live Rooms */}
           <div className="p-4">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              Live Rooms
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                Live Rooms
+              </h3>
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="h-8 gap-1.5 hover:bg-primary hover:text-primary-foreground transition-all"
+                onClick={() => setShowCreateRoom(true)}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                New
+              </Button>
+            </div>
             <ScrollArea className="h-48">
               <div className="space-y-2">
                 {audioRooms.map((room) => (
