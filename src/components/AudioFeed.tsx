@@ -8,7 +8,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Play, Pause, Volume2, Users, Plus, Hand, MoreVertical, Volume } from 'lucide-react';
+import { Mic, MicOff, Play, Pause, Volume2, Users, Plus, Hand, MoreVertical, Volume, Trash2, UserCog } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/components/ui/use-toast';
@@ -47,6 +49,7 @@ interface VoiceMemo {
 
 interface RoomParticipant {
   id: string;
+  user_id: string;
   role: string; // Will be 'host' | 'speaker' | 'listener' but coming from DB as string
   is_muted: boolean;
   hand_raised: boolean;
@@ -72,6 +75,10 @@ const AudioFeed = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [showCreateStory, setShowCreateStory] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
+  const [selectedNewHost, setSelectedNewHost] = useState<string | null>(null);
 
   // LiveKit integration
   const livekit = useLiveKit();
@@ -391,6 +398,56 @@ const AudioFeed = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const deleteRoom = async (roomId: string) => {
+    try {
+      const { error } = await supabase
+        .from('audio_rooms')
+        .delete()
+        .eq('id', roomId);
+
+      if (error) throw error;
+
+      setAudioRooms(prev => prev.filter(r => r.id !== roomId));
+      if (selectedRoom === roomId) {
+        await leaveRoom();
+      }
+      
+      sonnerToast.success('Room deleted successfully');
+    } catch (error) {
+      console.error('Error deleting room:', error);
+      sonnerToast.error('Failed to delete room');
+    }
+  };
+
+  const transferOwnership = async (roomId: string, newHostId: string) => {
+    try {
+      const { error } = await supabase
+        .from('audio_rooms')
+        .update({ host_id: newHostId })
+        .eq('id', roomId);
+
+      if (error) throw error;
+
+      // Update the participant role
+      await supabase
+        .from('room_participants')
+        .update({ role: 'host' })
+        .match({ room_id: roomId, user_id: newHostId });
+
+      await supabase
+        .from('room_participants')
+        .update({ role: 'speaker' })
+        .match({ room_id: roomId, user_id: user?.id });
+
+      sonnerToast.success('Ownership transferred successfully');
+      fetchAudioRooms();
+      fetchRoomParticipants(roomId);
+    } catch (error) {
+      console.error('Error transferring ownership:', error);
+      sonnerToast.error('Failed to transfer ownership');
+    }
+  };
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
@@ -560,9 +617,40 @@ const AudioFeed = () => {
                       {audioRooms.find(r => r.id === selectedRoom)?.topic}
                     </p>
                   </div>
-                  <Button variant="outline" size="sm" onClick={leaveRoom}>
-                    Leave Room
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {audioRooms.find(r => r.id === selectedRoom)?.host_id === user?.id && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setShowTransferDialog(true);
+                            }}
+                          >
+                            <UserCog className="h-4 w-4 mr-2" />
+                            Transfer Ownership
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              setRoomToDelete(selectedRoom);
+                              setShowDeleteDialog(true);
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Room
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                    <Button variant="outline" size="sm" onClick={leaveRoom}>
+                      Leave Room
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -699,6 +787,95 @@ const AudioFeed = () => {
         onOpenChange={setShowCreateStory}
         onStoryCreated={fetchVoiceMemos}
       />
+
+      {/* Delete Room Confirmation */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Room?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this audio room. All participants will be removed. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (roomToDelete) {
+                  deleteRoom(roomToDelete);
+                  setRoomToDelete(null);
+                }
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete Room
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Transfer Ownership Dialog */}
+      <AlertDialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Transfer Room Ownership</AlertDialogTitle>
+            <AlertDialogDescription>
+              Select a participant to transfer ownership to. You will become a speaker after the transfer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <div className="space-y-2">
+              {roomParticipants
+                .filter(p => p.profiles && p.id !== user?.id)
+                .map((participant) => (
+                  <div
+                    key={participant.id}
+                    onClick={() => setSelectedNewHost(participant.user_id)}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg cursor-pointer border-2 transition-all",
+                      selectedNewHost === participant.user_id
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={participant.profiles?.avatar_url} />
+                      <AvatarFallback>
+                        {participant.profiles?.display_name?.[0] || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">
+                        {participant.profiles?.display_name || participant.profiles?.username}
+                      </p>
+                      <p className="text-xs text-muted-foreground capitalize">{participant.role}</p>
+                    </div>
+                  </div>
+                ))}
+              {roomParticipants.filter(p => p.id !== user?.id).length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No other participants to transfer to
+                </p>
+              )}
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedNewHost(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedRoom && selectedNewHost) {
+                  transferOwnership(selectedRoom, selectedNewHost);
+                  setSelectedNewHost(null);
+                  setShowTransferDialog(false);
+                }
+              }}
+              disabled={!selectedNewHost}
+            >
+              Transfer Ownership
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
