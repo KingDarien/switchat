@@ -18,7 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Home, User, LogOut, Heart, MessageCircle, Search, Shield } from 'lucide-react';
+import { Home, User, LogOut, Heart, MessageCircle, Search, Shield, Radio, Video } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const Index = () => {
   const { user, loading, signOut } = useAuth();
@@ -117,162 +123,195 @@ const Index = () => {
             </SwipeContainer>
           ) : (
             // Desktop: Sidebar + Main content layout
-            <div className="flex min-h-screen">
-              {/* Left Sidebar Navigation */}
-              <aside className="w-72 fixed left-0 top-0 h-screen glass-effect border-r border-border/50 p-6 flex flex-col z-30">
-                <div className="mb-8">
-                  <h1 className="text-2xl font-bold gradient-text">SWITCHAT</h1>
-                  <p className="text-sm text-muted-foreground mt-1">Connect & Share</p>
-                </div>
-
-                <nav className="flex-1 space-y-2">
-                  <button
-                    onClick={() => setActiveTab('feed')}
-                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 ${
-                      activeTab === 'feed'
-                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                        : 'hover:bg-muted/50 text-foreground'
-                    }`}
-                  >
-                    <span className="text-2xl">📱</span>
-                    <span className="font-semibold text-base">Social Feed</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('audio')}
-                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 ${
-                      activeTab === 'audio'
-                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                        : 'hover:bg-muted/50 text-foreground'
-                    }`}
-                  >
-                    <span className="text-2xl">🎙️</span>
-                    <span className="font-semibold text-base">Audio Rooms</span>
-                  </button>
-
-                  <button
-                    onClick={() => setActiveTab('video')}
-                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-300 ${
-                      activeTab === 'video'
-                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                        : 'hover:bg-muted/50 text-foreground'
-                    }`}
-                  >
-                    <span className="text-2xl">🎥</span>
-                    <span className="font-semibold text-base">Video Shorts</span>
-                  </button>
-
-                  <div className="pt-4 mt-4 border-t border-border/50">
-                    <Link to="/explore">
-                      <button className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-muted/50 transition-all duration-300 text-foreground">
-                        <Search className="h-5 w-5" />
-                        <span className="font-semibold text-base">Explore</span>
-                      </button>
-                    </Link>
-
-                    <Link to="/notifications">
-                      <button className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-muted/50 transition-all duration-300 text-foreground">
-                        <Heart className="h-5 w-5" />
-                        <span className="font-semibold text-base">Activity</span>
-                      </button>
-                    </Link>
-
-                    <Link to={`/profile/${user?.id}`}>
-                      <button className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl hover:bg-muted/50 transition-all duration-300 text-foreground">
-                        <User className="h-5 w-5" />
-                        <span className="font-semibold text-base">Profile</span>
-                      </button>
-                    </Link>
+            <TooltipProvider>
+              <div className="flex min-h-screen">
+                {/* Left Sidebar Navigation - Compact Icon-Only */}
+                <aside className="w-24 fixed left-0 top-0 h-screen glass-effect border-r border-border/50 py-6 flex flex-col items-center z-30">
+                  <div className="mb-8">
+                    <h1 className="text-xl font-bold gradient-text">SW</h1>
                   </div>
-                </nav>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-start gap-3 py-6 rounded-xl hover:bg-muted/50">
-                      <Avatar className="h-10 w-10 ring-2 ring-primary/20">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
-                          {user.email?.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-semibold truncate">{user.email?.split('@')[0]}</p>
-                        <p className="text-xs text-muted-foreground">View profile</p>
-                      </div>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 mb-2 glass-effect border-border/50 rounded-2xl shadow-2xl" align="end">
-                    <DropdownMenuItem className="font-normal py-3">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{user.email}</p>
-                        <p className="text-xs text-muted-foreground">Signed in</p>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/settings" className="w-full cursor-pointer py-2">
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut} className="py-2">
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </aside>
+                  <nav className="flex-1 space-y-2 w-full px-3">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => setActiveTab('feed')}
+                          className={`w-full flex items-center justify-center p-4 rounded-xl transition-all duration-300 ${
+                            activeTab === 'feed'
+                              ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                              : 'hover:bg-muted/50 text-foreground'
+                          }`}
+                        >
+                          <Home className="h-6 w-6" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Social Feed</p>
+                      </TooltipContent>
+                    </Tooltip>
 
-              {/* Main Content Area */}
-              <main className="flex-1 ml-72">
-                <div className="min-h-screen">
-                  {activeTab === 'feed' && (
-                    <ErrorBoundary fallback={
-                      <div className="h-screen flex items-center justify-center">
-                        <div className="text-center space-y-3">
-                          <div className="text-6xl">📱</div>
-                          <p className="text-xl font-medium text-muted-foreground">Feed unavailable</p>
-                        </div>
-                      </div>
-                    }>
-                      <div className="max-w-3xl mx-auto px-6 py-8">
-                        <div className="mb-6">
-                          <h2 className="text-3xl font-bold mb-2">Social Feed</h2>
-                          <p className="text-muted-foreground">Stay connected with your community</p>
-                        </div>
-                        <Feed />
-                      </div>
-                    </ErrorBoundary>
-                  )}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => setActiveTab('audio')}
+                          className={`w-full flex items-center justify-center p-4 rounded-xl transition-all duration-300 ${
+                            activeTab === 'audio'
+                              ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                              : 'hover:bg-muted/50 text-foreground'
+                          }`}
+                        >
+                          <Radio className="h-6 w-6" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Audio Rooms</p>
+                      </TooltipContent>
+                    </Tooltip>
 
-                  {activeTab === 'audio' && (
-                    <ErrorBoundary fallback={
-                      <div className="h-screen flex items-center justify-center">
-                        <div className="text-center space-y-3">
-                          <div className="text-6xl">🎙️</div>
-                          <p className="text-xl font-medium text-muted-foreground">Audio feed unavailable</p>
-                        </div>
-                      </div>
-                    }>
-                      <AudioFeed />
-                    </ErrorBoundary>
-                  )}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => setActiveTab('video')}
+                          className={`w-full flex items-center justify-center p-4 rounded-xl transition-all duration-300 ${
+                            activeTab === 'video'
+                              ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                              : 'hover:bg-muted/50 text-foreground'
+                          }`}
+                        >
+                          <Video className="h-6 w-6" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>Video Shorts</p>
+                      </TooltipContent>
+                    </Tooltip>
 
-                  {activeTab === 'video' && (
-                    <ErrorBoundary fallback={
-                      <div className="h-screen flex items-center justify-center">
-                        <div className="text-center space-y-3">
-                          <div className="text-6xl">🎥</div>
-                          <p className="text-xl font-medium text-muted-foreground">Video feed unavailable</p>
+                    <div className="pt-4 mt-4 border-t border-border/50 space-y-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link to="/explore">
+                            <button className="w-full flex items-center justify-center p-4 rounded-xl hover:bg-muted/50 transition-all duration-300 text-foreground">
+                              <Search className="h-6 w-6" />
+                            </button>
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>Explore</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link to="/notifications">
+                            <button className="w-full flex items-center justify-center p-4 rounded-xl hover:bg-muted/50 transition-all duration-300 text-foreground">
+                              <Heart className="h-6 w-6" />
+                            </button>
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>Activity</p>
+                        </TooltipContent>
+                      </Tooltip>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link to={`/profile/${user?.id}`}>
+                            <button className="w-full flex items-center justify-center p-4 rounded-xl hover:bg-muted/50 transition-all duration-300 text-foreground">
+                              <User className="h-6 w-6" />
+                            </button>
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>Profile</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  </nav>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="p-2 rounded-xl hover:bg-muted/50">
+                        <Avatar className="h-10 w-10 ring-2 ring-primary/20">
+                          <AvatarImage src="" />
+                          <AvatarFallback className="bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
+                            {user.email?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56 mb-2 ml-2 glass-effect border-border/50 rounded-2xl shadow-2xl" align="start">
+                      <DropdownMenuItem className="font-normal py-3">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium">{user.email}</p>
+                          <p className="text-xs text-muted-foreground">Signed in</p>
                         </div>
-                      </div>
-                    }>
-                      <VideoFeed />
-                    </ErrorBoundary>
-                  )}
-                </div>
-              </main>
-            </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/settings" className="w-full cursor-pointer py-2">
+                          Settings
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="py-2">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </aside>
+
+                {/* Main Content Area */}
+                <main className="flex-1 ml-24">
+                  <div className="min-h-screen">
+                    {activeTab === 'feed' && (
+                      <ErrorBoundary fallback={
+                        <div className="h-screen flex items-center justify-center">
+                          <div className="text-center space-y-3">
+                            <div className="text-6xl">📱</div>
+                            <p className="text-xl font-medium text-muted-foreground">Feed unavailable</p>
+                          </div>
+                        </div>
+                      }>
+                        <div className="max-w-3xl mx-auto px-6 py-8">
+                          <div className="mb-6">
+                            <h2 className="text-3xl font-bold mb-2">Social Feed</h2>
+                            <p className="text-muted-foreground">Stay connected with your community</p>
+                          </div>
+                          <Feed />
+                        </div>
+                      </ErrorBoundary>
+                    )}
+
+                    {activeTab === 'audio' && (
+                      <ErrorBoundary fallback={
+                        <div className="h-screen flex items-center justify-center">
+                          <div className="text-center space-y-3">
+                            <div className="text-6xl">🎙️</div>
+                            <p className="text-xl font-medium text-muted-foreground">Audio feed unavailable</p>
+                          </div>
+                        </div>
+                      }>
+                        <AudioFeed />
+                      </ErrorBoundary>
+                    )}
+
+                    {activeTab === 'video' && (
+                      <ErrorBoundary fallback={
+                        <div className="h-screen flex items-center justify-center">
+                          <div className="text-center space-y-3">
+                            <div className="text-6xl">🎥</div>
+                            <p className="text-xl font-medium text-muted-foreground">Video feed unavailable</p>
+                          </div>
+                        </div>
+                      }>
+                        <VideoFeed />
+                      </ErrorBoundary>
+                    )}
+                  </div>
+                </main>
+              </div>
+            </TooltipProvider>
           )}
         </ErrorBoundary>
       </div>
