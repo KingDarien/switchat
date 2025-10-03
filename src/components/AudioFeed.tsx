@@ -32,6 +32,11 @@ interface AudioRoom {
   like_count?: number;
   dislike_count?: number;
   user_reaction?: 'like' | 'dislike' | null;
+  profiles?: {
+    username: string;
+    display_name: string;
+    avatar_url: string;
+  };
 }
 
 interface VoiceMemo {
@@ -303,13 +308,29 @@ const AudioFeed = () => {
 
       if (error) throw error;
       
-      // Merge with user reactions
-      const roomsWithReactions = (data || []).map(room => ({
-        ...room,
-        user_reaction: userReactions[room.id] || null
-      }));
-      
-      setAudioRooms(roomsWithReactions);
+      // Fetch host profiles for all rooms
+      if (data && data.length > 0) {
+        const hostIds = [...new Set(data.map(room => room.host_id))];
+        const { data: hostProfiles } = await supabase
+          .from('profiles')
+          .select('user_id, username, display_name, avatar_url')
+          .in('user_id', hostIds);
+        
+        const profileMap = new Map(
+          hostProfiles?.map(p => [p.user_id, p]) || []
+        );
+        
+        // Merge with user reactions and host profiles
+        const roomsWithData = data.map(room => ({
+          ...room,
+          user_reaction: userReactions[room.id] || null,
+          profiles: profileMap.get(room.host_id)
+        }));
+        
+        setAudioRooms(roomsWithData);
+      } else {
+        setAudioRooms([]);
+      }
     } catch (error) {
       console.error('Error fetching audio rooms:', error);
     }
@@ -1014,6 +1035,11 @@ const AudioFeed = () => {
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-sm truncate">{room.title}</p>
                           <p className="text-xs text-muted-foreground truncate">{room.topic}</p>
+                          {room.profiles && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Host: <span className="font-medium">{room.profiles.display_name || room.profiles.username}</span>
+                            </p>
+                          )}
                           <div className="flex items-center gap-2 mt-1">
                             <Badge variant="secondary" className="text-xs">
                               <Users className="h-3 w-3 mr-1" />
