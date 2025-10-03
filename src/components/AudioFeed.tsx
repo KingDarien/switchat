@@ -791,14 +791,6 @@ const AudioFeed = () => {
             </h1>
             <p className="text-sm text-muted-foreground">Live conversations & voice stories</p>
           </div>
-          <Button 
-            size="lg" 
-            className="gap-2 shadow-lg hover:shadow-xl bg-gradient-to-r from-primary to-accent hover:scale-105 transition-all font-semibold" 
-            onClick={() => setShowCreateRoom(true)}
-          >
-            <Plus className="h-5 w-5" />
-            Start Live Room
-          </Button>
         </div>
       </div>
 
