@@ -1061,7 +1061,7 @@ const AudioFeed = () => {
           <Separator />
 
           {/* Voice Memos */}
-          <div className="flex-1 p-4 bg-cyan-200/60 dark:bg-cyan-900/30">
+          <div className="flex-1 p-4 bg-[hsl(var(--mint-teal))]">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold">Voice Stories</h3>
               <Button 

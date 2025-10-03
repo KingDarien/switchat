@@ -56,6 +56,9 @@ All colors MUST be HSL.
     --local-news: 142 76% 36%;
     --state-news: 217 91% 60%;
     --city-news: 38 92% 50%;
+    
+    /* Special Colors */
+    --mint-teal: 160 60% 85%;
 
     --radius: 0.75rem;
     
@@ -136,6 +139,9 @@ All colors MUST be HSL.
     --local-news: 142 76% 45%;
     --state-news: 217 91% 65%;
     --city-news: 38 92% 60%;
+    
+    /* Special Colors Dark Mode */
+    --mint-teal: 160 40% 25%;
     
     /* Modern Shadows & Depth Dark Mode */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.5);
