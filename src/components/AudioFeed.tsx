@@ -38,6 +38,7 @@ interface VoiceMemo {
   audio_url: string;
   duration: number;
   transcript: string;
+  is_public: boolean;
   created_at: string;
   profiles: {
     username: string;
@@ -79,6 +80,11 @@ const AudioFeed = () => {
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState<string | null>(null);
   const [selectedNewHost, setSelectedNewHost] = useState<string | null>(null);
+  const [storyToDelete, setStoryToDelete] = useState<string | null>(null);
+  const [showDeleteStoryDialog, setShowDeleteStoryDialog] = useState(false);
+  const [showEditStoryDialog, setShowEditStoryDialog] = useState(false);
+  const [showScheduleStoryDialog, setShowScheduleStoryDialog] = useState(false);
+  const [selectedStory, setSelectedStory] = useState<VoiceMemo | null>(null);
 
   // Audio playback for voice memos
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -554,6 +560,72 @@ const AudioFeed = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const deleteVoiceStory = async (storyId: string) => {
+    try {
+      const { error } = await supabase
+        .from('voice_memos')
+        .delete()
+        .eq('id', storyId);
+
+      if (error) throw error;
+
+      setVoiceMemos(prev => prev.filter(s => s.id !== storyId));
+      if (playingMemo === storyId) {
+        audioRef.current?.pause();
+        setPlayingMemo(null);
+      }
+      
+      sonnerToast.success('Voice story deleted successfully');
+    } catch (error) {
+      console.error('Error deleting voice story:', error);
+      sonnerToast.error('Failed to delete voice story');
+    }
+  };
+
+  const updateVoiceStory = async (storyId: string, updates: { title?: string; is_public?: boolean }) => {
+    try {
+      const { error } = await supabase
+        .from('voice_memos')
+        .update(updates)
+        .eq('id', storyId);
+
+      if (error) throw error;
+
+      setVoiceMemos(prev => prev.map(s => 
+        s.id === storyId ? { ...s, ...updates } : s
+      ));
+      
+      sonnerToast.success('Voice story updated successfully');
+      setShowEditStoryDialog(false);
+    } catch (error) {
+      console.error('Error updating voice story:', error);
+      sonnerToast.error('Failed to update voice story');
+    }
+  };
+
+  const scheduleVoiceStory = async (storyId: string, scheduledFor: Date) => {
+    try {
+      const { error } = await supabase
+        .from('voice_memos')
+        .update({
+          is_scheduled: true,
+          scheduled_for: scheduledFor.toISOString(),
+          is_public: false
+        })
+        .eq('id', storyId);
+
+      if (error) throw error;
+
+      setVoiceMemos(prev => prev.filter(s => s.id !== storyId));
+      
+      sonnerToast.success('Voice story scheduled successfully');
+      setShowScheduleStoryDialog(false);
+    } catch (error) {
+      console.error('Error scheduling voice story:', error);
+      sonnerToast.error('Failed to schedule voice story');
+    }
+  };
+
   const deleteRoom = async (roomId: string) => {
     try {
       const { error } = await supabase
@@ -825,6 +897,44 @@ const AudioFeed = () => {
                             </span>
                           </div>
                         </div>
+                        
+                        {/* Creator Controls */}
+                        {memo.user_id === user?.id && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                <MoreVertical className="h-3.5 w-3.5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem 
+                                onClick={() => {
+                                  setSelectedStory(memo);
+                                  setShowEditStoryDialog(true);
+                                }}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => {
+                                  setSelectedStory(memo);
+                                  setShowScheduleStoryDialog(true);
+                                }}
+                              >
+                                Schedule
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => {
+                                  setStoryToDelete(memo.id);
+                                  setShowDeleteStoryDialog(true);
+                                }}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -1236,6 +1346,116 @@ const AudioFeed = () => {
               disabled={!selectedNewHost}
             >
               Transfer Ownership
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Voice Story Dialog */}
+      <AlertDialog open={showDeleteStoryDialog} onOpenChange={setShowDeleteStoryDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Voice Story?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this voice story. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (storyToDelete) {
+                  deleteVoiceStory(storyToDelete);
+                  setStoryToDelete(null);
+                }
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete Story
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Voice Story Dialog */}
+      <AlertDialog open={showEditStoryDialog} onOpenChange={setShowEditStoryDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Edit Voice Story</AlertDialogTitle>
+            <AlertDialogDescription>
+              Update your voice story details
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <label className="text-sm font-medium">Title</label>
+              <input
+                type="text"
+                className="w-full mt-1 px-3 py-2 bg-background border rounded-md"
+                defaultValue={selectedStory?.title || ''}
+                id="story-title"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="story-public"
+                defaultChecked={selectedStory?.is_public}
+                className="h-4 w-4"
+              />
+              <label htmlFor="story-public" className="text-sm">Make public</label>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedStory) {
+                  const title = (document.getElementById('story-title') as HTMLInputElement)?.value;
+                  const isPublic = (document.getElementById('story-public') as HTMLInputElement)?.checked;
+                  updateVoiceStory(selectedStory.id, { title, is_public: isPublic });
+                }
+              }}
+            >
+              Save Changes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Schedule Voice Story Dialog */}
+      <AlertDialog open={showScheduleStoryDialog} onOpenChange={setShowScheduleStoryDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Schedule Voice Story</AlertDialogTitle>
+            <AlertDialogDescription>
+              Choose when to publish this voice story
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <label className="text-sm font-medium">Schedule for</label>
+            <input
+              type="datetime-local"
+              className="w-full mt-1 px-3 py-2 bg-background border rounded-md"
+              id="schedule-datetime"
+              min={new Date().toISOString().slice(0, 16)}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedStory) {
+                  const datetime = (document.getElementById('schedule-datetime') as HTMLInputElement)?.value;
+                  if (datetime) {
+                    scheduleVoiceStory(selectedStory.id, new Date(datetime));
+                  } else {
+                    sonnerToast.error('Please select a date and time');
+                  }
+                }
+              }}
+            >
+              Schedule Story
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1258,6 +1258,9 @@ export type Database = {
           duration: number | null
           id: string
           is_public: boolean
+          is_scheduled: boolean | null
+          published_at: string | null
+          scheduled_for: string | null
           title: string | null
           transcript: string | null
           updated_at: string
@@ -1269,6 +1272,9 @@ export type Database = {
           duration?: number | null
           id?: string
           is_public?: boolean
+          is_scheduled?: boolean | null
+          published_at?: string | null
+          scheduled_for?: string | null
           title?: string | null
           transcript?: string | null
           updated_at?: string
@@ -1280,6 +1286,9 @@ export type Database = {
           duration?: number | null
           id?: string
           is_public?: boolean
+          is_scheduled?: boolean | null
+          published_at?: string | null
+          scheduled_for?: string | null
           title?: string | null
           transcript?: string | null
           updated_at?: string
