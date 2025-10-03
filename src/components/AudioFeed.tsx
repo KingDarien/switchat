@@ -819,7 +819,7 @@ const AudioFeed = () => {
                 onClick={() => setShowCreateRoom(true)}
               >
                 <Plus className="h-3.5 w-3.5" />
-                New
+                + Start Live Room +
               </Button>
             </div>
             <ScrollArea className="h-48">
