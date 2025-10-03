@@ -197,13 +197,21 @@ const Feed = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-32 bg-muted rounded-lg"></div>
+      <div className="space-y-6 animate-fade-in">
+        <div className="animate-pulse space-y-3">
+          <div className="h-12 bg-muted/50 rounded-lg"></div>
+          <div className="h-32 bg-muted/50 rounded-lg"></div>
         </div>
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="h-48 bg-muted rounded-lg"></div>
+          <div key={i} className="animate-pulse space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-muted/50 rounded-full"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-muted/50 rounded w-1/4"></div>
+                <div className="h-3 bg-muted/50 rounded w-1/6"></div>
+              </div>
+            </div>
+            <div className="h-48 bg-muted/50 rounded-lg"></div>
           </div>
         ))}
       </div>

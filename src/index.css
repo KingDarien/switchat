@@ -55,6 +55,12 @@ All colors MUST be HSL.
     --city-news: 43 100% 70%;
 
     --radius: 0.5rem;
+    
+    /* Shadows & Depth */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1);
 
     --sidebar-background: 0 0% 98%;
 
@@ -119,6 +125,13 @@ All colors MUST be HSL.
     --local-news: 154 70% 45%;
     --state-news: 214 100% 60%;
     --city-news: 43 100% 60%;
+    
+    /* Shadows & Depth Dark Mode */
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.6);
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -136,11 +149,16 @@ All colors MUST be HSL.
   }
   
   .hover-scale {
-    @apply transition-transform duration-200 hover:scale-105;
+    @apply transition-transform duration-200 hover:scale-105 active:scale-95;
   }
   
   .pulse {
     @apply animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite];
+  }
+  
+  /* Ensure dropdowns are always on top */
+  [data-radix-popper-content-wrapper] {
+    z-index: 100 !important;
   }
 }
 

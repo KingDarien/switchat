@@ -405,24 +405,24 @@ const AudioFeed = () => {
   return (
     <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b bg-background/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
+      <div className="p-4 border-b bg-background/95 backdrop-blur-md shadow-sm">
+        <div className="flex items-center justify-between max-w-7xl mx-auto">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               🎙️ Audio Space
             </h1>
             <p className="text-sm text-muted-foreground">Live conversations & voice stories</p>
           </div>
-          <Button size="sm" className="gap-2" onClick={() => setShowCreateRoom(true)}>
+          <Button size="sm" className="gap-2 shadow-sm hover:scale-105 transition-transform" onClick={() => setShowCreateRoom(true)}>
             <Plus className="h-4 w-4" />
             Create Room
           </Button>
         </div>
       </div>
 
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex h-[calc(100vh-80px)] max-w-7xl mx-auto">
         {/* Left Panel - Rooms & Memos */}
-        <div className="w-80 border-r bg-background/50 flex flex-col">
+        <div className="w-full lg:w-80 border-r bg-background/50 flex flex-col overflow-hidden">
           {/* Live Rooms */}
           <div className="p-4">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
@@ -435,8 +435,8 @@ const AudioFeed = () => {
                   <Card 
                     key={room.id} 
                     className={cn(
-                      "cursor-pointer transition-colors hover:bg-accent/50",
-                      selectedRoom === room.id && "border-primary bg-primary/5"
+                      "cursor-pointer transition-all duration-200 hover:bg-accent/50 hover:shadow-md hover:scale-[1.02]",
+                      selectedRoom === room.id && "border-primary bg-primary/10 shadow-lg"
                     )}
                     onClick={() => !isInRoom ? joinRoom(room.id) : null}
                   >
@@ -479,7 +479,7 @@ const AudioFeed = () => {
             <ScrollArea className="h-full">
               <div className="space-y-3">
                 {voiceMemos.map((memo) => (
-                  <Card key={memo.id} className="hover:bg-accent/30 transition-colors">
+                  <Card key={memo.id} className="hover:bg-accent/30 hover:shadow-md transition-all duration-200 hover:scale-[1.01] cursor-pointer">
                     <CardContent className="p-3">
                       <div className="flex items-start gap-3">
                         <Avatar className="h-8 w-8">

@@ -111,16 +111,22 @@ const VideoFeed = () => {
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
-        <div className="text-muted-foreground">Loading videos...</div>
+        <div className="text-center animate-fade-in">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading videos...</p>
+        </div>
       </div>
     );
   }
 
   if (posts.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-background p-8 text-center">
+      <div className="h-screen flex flex-col items-center justify-center bg-background p-8 text-center animate-fade-in">
+        <div className="rounded-full bg-muted/50 p-6 mb-4">
+          <span className="text-5xl">🎥</span>
+        </div>
         <h3 className="text-xl font-semibold mb-2">No Videos Yet</h3>
-        <p className="text-muted-foreground mb-4">
+        <p className="text-muted-foreground max-w-md">
           Follow more users or create your first video to see content here
         </p>
       </div>

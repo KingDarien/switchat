@@ -104,21 +104,30 @@ const Index = () => {
             // Desktop: Tab navigation
             <div className="w-full">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-                  <TabsList className="w-full max-w-6xl mx-auto justify-start rounded-none h-12 bg-transparent p-0">
-                    <TabsTrigger value="audio" className="flex-1 gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-                      🎙️ Audio
+                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 border-b border-border shadow-sm">
+                  <TabsList className="w-full max-w-6xl mx-auto justify-start rounded-none h-14 bg-transparent p-0 gap-1">
+                    <TabsTrigger 
+                      value="audio" 
+                      className="flex-1 gap-2 h-full rounded-none relative data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none hover:bg-muted/50 transition-colors after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-300 font-medium"
+                    >
+                      <span className="text-lg">🎙️</span> Audio
                     </TabsTrigger>
-                    <TabsTrigger value="feed" className="flex-1 gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-                      📱 Feed
+                    <TabsTrigger 
+                      value="feed" 
+                      className="flex-1 gap-2 h-full rounded-none relative data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none hover:bg-muted/50 transition-colors after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-300 font-medium"
+                    >
+                      <span className="text-lg">📱</span> Feed
                     </TabsTrigger>
-                    <TabsTrigger value="video" className="flex-1 gap-2 data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-                      🎥 Video
+                    <TabsTrigger 
+                      value="video" 
+                      className="flex-1 gap-2 h-full rounded-none relative data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none hover:bg-muted/50 transition-colors after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-300 font-medium"
+                    >
+                      <span className="text-lg">🎥</span> Video
                     </TabsTrigger>
                   </TabsList>
                 </div>
                 
-                <TabsContent value="audio" className="mt-0">
+                <TabsContent value="audio" className="mt-0 animate-fade-in">
                   <ErrorBoundary fallback={
                     <div className="h-screen flex items-center justify-center bg-background">
                       <div className="text-center">
@@ -130,7 +139,7 @@ const Index = () => {
                   </ErrorBoundary>
                 </TabsContent>
 
-                <TabsContent value="feed" className="mt-0">
+                <TabsContent value="feed" className="mt-0 animate-fade-in">
                   <ErrorBoundary fallback={
                     <div className="h-screen flex items-center justify-center bg-background">
                       <div className="text-center">
@@ -144,7 +153,7 @@ const Index = () => {
                   </ErrorBoundary>
                 </TabsContent>
 
-                <TabsContent value="video" className="mt-0">
+                <TabsContent value="video" className="mt-0 animate-fade-in">
                   <ErrorBoundary fallback={
                     <div className="h-screen flex items-center justify-center bg-background">
                       <div className="text-center">
