@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Play, Pause, Volume2, Users, Plus, Hand, MoreVertical, Volume, Trash2, UserCog } from 'lucide-react';
+import { Mic, MicOff, Play, Pause, Volume2, Users, Plus, Hand, MoreVertical, Volume, Trash2, UserCog, ThumbsUp, ThumbsDown, Share2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +29,9 @@ interface AudioRoom {
   max_participants: number;
   is_active: boolean;
   created_at: string;
+  like_count?: number;
+  dislike_count?: number;
+  user_reaction?: 'like' | 'dislike' | null;
 }
 
 interface VoiceMemo {
@@ -85,6 +88,7 @@ const AudioFeed = () => {
   const [showEditStoryDialog, setShowEditStoryDialog] = useState(false);
   const [showScheduleStoryDialog, setShowScheduleStoryDialog] = useState(false);
   const [selectedStory, setSelectedStory] = useState<VoiceMemo | null>(null);
+  const [userReactions, setUserReactions] = useState<Record<string, 'like' | 'dislike'>>({});
 
   // Audio playback for voice memos
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -97,6 +101,9 @@ const AudioFeed = () => {
   useEffect(() => {
     fetchAudioRooms();
     fetchVoiceMemos();
+    if (user?.id) {
+      fetchUserReactions();
+    }
 
     // Subscribe to real-time updates for new audio rooms
     const roomsChannel = supabase
@@ -228,10 +235,47 @@ const AudioFeed = () => {
       )
       .subscribe() : null;
 
+    // Subscribe to real-time updates for room reactions
+    const reactionsChannel = supabase
+      .channel('room-reactions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'room_reactions'
+        },
+        (payload) => {
+          // Refetch rooms to get updated counts
+          fetchAudioRooms();
+          // Update user reactions if it's current user's reaction
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const reaction = payload.new as any;
+            if (reaction.user_id === user?.id) {
+              setUserReactions(prev => ({
+                ...prev,
+                [reaction.room_id]: reaction.reaction_type
+              }));
+            }
+          } else if (payload.eventType === 'DELETE') {
+            const reaction = payload.old as any;
+            if (reaction.user_id === user?.id) {
+              setUserReactions(prev => {
+                const updated = { ...prev };
+                delete updated[reaction.room_id];
+                return updated;
+              });
+            }
+          }
+        }
+      )
+      .subscribe();
+
     // Cleanup function to ensure user leaves room when component unmounts
     return () => {
       supabase.removeChannel(roomsChannel);
       supabase.removeChannel(memosChannel);
+      supabase.removeChannel(reactionsChannel);
       if (participantsChannel) {
         supabase.removeChannel(participantsChannel);
       }
@@ -258,9 +302,38 @@ const AudioFeed = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setAudioRooms(data || []);
+      
+      // Merge with user reactions
+      const roomsWithReactions = (data || []).map(room => ({
+        ...room,
+        user_reaction: userReactions[room.id] || null
+      }));
+      
+      setAudioRooms(roomsWithReactions);
     } catch (error) {
       console.error('Error fetching audio rooms:', error);
+    }
+  };
+
+  const fetchUserReactions = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('room_reactions')
+        .select('room_id, reaction_type')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      const reactions: Record<string, 'like' | 'dislike'> = {};
+      data?.forEach(r => {
+        reactions[r.room_id] = r.reaction_type as 'like' | 'dislike';
+      });
+      
+      setUserReactions(reactions);
+    } catch (error) {
+      console.error('Error fetching user reactions:', error);
     }
   };
 
@@ -494,6 +567,117 @@ const AudioFeed = () => {
       setHandRaised(!handRaised);
     } catch (error) {
       console.error('Error toggling hand raise:', error);
+    }
+  };
+
+  const handleRoomLike = async (roomId: string) => {
+    if (!user?.id) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to like rooms",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const currentReaction = userReactions[roomId];
+    
+    try {
+      if (currentReaction === 'like') {
+        // Remove like
+        await supabase
+          .from('room_reactions')
+          .delete()
+          .match({ room_id: roomId, user_id: user.id });
+      } else if (currentReaction === 'dislike') {
+        // Change from dislike to like
+        await supabase
+          .from('room_reactions')
+          .update({ reaction_type: 'like' })
+          .match({ room_id: roomId, user_id: user.id });
+      } else {
+        // Add new like
+        await supabase
+          .from('room_reactions')
+          .insert({ room_id: roomId, user_id: user.id, reaction_type: 'like' });
+      }
+    } catch (error) {
+      console.error('Error liking room:', error);
+      toast({
+        title: "Error",
+        description: "Failed to like room",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRoomDislike = async (roomId: string) => {
+    if (!user?.id) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to dislike rooms",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const currentReaction = userReactions[roomId];
+    
+    try {
+      if (currentReaction === 'dislike') {
+        // Remove dislike
+        await supabase
+          .from('room_reactions')
+          .delete()
+          .match({ room_id: roomId, user_id: user.id });
+      } else if (currentReaction === 'like') {
+        // Change from like to dislike
+        await supabase
+          .from('room_reactions')
+          .update({ reaction_type: 'dislike' })
+          .match({ room_id: roomId, user_id: user.id });
+      } else {
+        // Add new dislike
+        await supabase
+          .from('room_reactions')
+          .insert({ room_id: roomId, user_id: user.id, reaction_type: 'dislike' });
+      }
+    } catch (error) {
+      console.error('Error disliking room:', error);
+      toast({
+        title: "Error",
+        description: "Failed to dislike room",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRoomShare = async (roomId: string, roomTitle: string) => {
+    const shareUrl = `${window.location.origin}/?room=${roomId}`;
+    const shareData = {
+      title: `Join "${roomTitle}" on SWITCHAT`,
+      text: `Listen to this live audio room: ${roomTitle}`,
+      url: shareUrl,
+    };
+
+    try {
+      // Try Web Share API first (mobile/modern browsers)
+      if (navigator.share) {
+        await navigator.share(shareData);
+        sonnerToast.success('Room shared!');
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shareUrl);
+        sonnerToast.success('Room link copied to clipboard!', {
+          description: shareUrl
+        });
+      }
+    } catch (error) {
+      // User cancelled share or clipboard failed
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Error sharing room:', error);
+        sonnerToast.error('Failed to share room');
+      }
     }
   };
 
@@ -835,6 +1019,35 @@ const AudioFeed = () => {
                               <Users className="h-3 w-3 mr-1" />
                               {room.current_participants}
                             </Badge>
+                          </div>
+                          {/* Reaction and Share Buttons */}
+                          <div className="flex items-center gap-3 mt-2" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={() => handleRoomLike(room.id)}
+                              className={cn(
+                                "flex items-center gap-1 text-xs transition-all duration-200 hover:scale-110",
+                                userReactions[room.id] === 'like' ? "text-green-500" : "text-muted-foreground hover:text-green-500"
+                              )}
+                            >
+                              <ThumbsUp className={cn("h-3.5 w-3.5", userReactions[room.id] === 'like' && "fill-current")} />
+                              <span>{room.like_count || 0}</span>
+                            </button>
+                            <button
+                              onClick={() => handleRoomDislike(room.id)}
+                              className={cn(
+                                "flex items-center gap-1 text-xs transition-all duration-200 hover:scale-110",
+                                userReactions[room.id] === 'dislike' ? "text-red-500" : "text-muted-foreground hover:text-red-500"
+                              )}
+                            >
+                              <ThumbsDown className={cn("h-3.5 w-3.5", userReactions[room.id] === 'dislike' && "fill-current")} />
+                              <span>{room.dislike_count || 0}</span>
+                            </button>
+                            <button
+                              onClick={() => handleRoomShare(room.id, room.title)}
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-110"
+                            >
+                              <Share2 className="h-3.5 w-3.5" />
+                            </button>
                           </div>
                         </div>
                       </div>

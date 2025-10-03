@@ -55,10 +55,12 @@ export type Database = {
           created_at: string
           current_participants: number | null
           description: string | null
+          dislike_count: number
           host_id: string
           id: string
           is_active: boolean
           is_private: boolean
+          like_count: number
           max_participants: number | null
           title: string
           topic: string | null
@@ -68,10 +70,12 @@ export type Database = {
           created_at?: string
           current_participants?: number | null
           description?: string | null
+          dislike_count?: number
           host_id?: string
           id?: string
           is_active?: boolean
           is_private?: boolean
+          like_count?: number
           max_participants?: number | null
           title: string
           topic?: string | null
@@ -81,10 +85,12 @@ export type Database = {
           created_at?: string
           current_participants?: number | null
           description?: string | null
+          dislike_count?: number
           host_id?: string
           id?: string
           is_active?: boolean
           is_private?: boolean
+          like_count?: number
           max_participants?: number | null
           title?: string
           topic?: string | null
@@ -929,6 +935,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      room_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          reaction_type: string
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reaction_type: string
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_reactions_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "audio_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_blocks: {
         Row: {
