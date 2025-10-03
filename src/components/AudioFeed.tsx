@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import CreateRoomDialog from './CreateRoomDialog';
+import VoiceStoryDialog from './VoiceStoryDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -69,6 +70,7 @@ const AudioFeed = () => {
   const [playingMemo, setPlayingMemo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreateRoom, setShowCreateRoom] = useState(false);
+  const [showCreateStory, setShowCreateStory] = useState(false);
 
   // LiveKit integration
   const livekit = useLiveKit();
@@ -95,8 +97,41 @@ const AudioFeed = () => {
       )
       .subscribe();
 
+    // Subscribe to real-time updates for new voice memos
+    const memosChannel = supabase
+      .channel('voice-memos-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'voice_memos'
+        },
+        async (payload) => {
+          const newMemo = payload.new as any;
+          // Fetch profile for the new memo
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_id, username, display_name, avatar_url, is_verified')
+            .eq('user_id', newMemo.user_id)
+            .single();
+
+          setVoiceMemos(prev => [{
+            ...newMemo,
+            profiles: profile || {
+              username: '',
+              display_name: '',
+              avatar_url: '',
+              is_verified: false
+            }
+          }, ...prev]);
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(roomsChannel);
+      supabase.removeChannel(memosChannel);
     };
   }, []);
 
@@ -411,7 +446,18 @@ const AudioFeed = () => {
 
           {/* Voice Memos */}
           <div className="flex-1 p-4">
-            <h3 className="font-semibold mb-3">Voice Stories</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Voice Stories</h3>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-7 gap-1"
+                onClick={() => setShowCreateStory(true)}
+              >
+                <Mic className="h-3 w-3" />
+                Record
+              </Button>
+            </div>
             <ScrollArea className="h-full">
               <div className="space-y-3">
                 {voiceMemos.map((memo) => (
@@ -609,10 +655,16 @@ const AudioFeed = () => {
         </div>
       </div>
 
-      <CreateRoomDialog
-        open={showCreateRoom}
+      <CreateRoomDialog 
+        open={showCreateRoom} 
         onOpenChange={setShowCreateRoom}
         onRoomCreated={fetchAudioRooms}
+      />
+
+      <VoiceStoryDialog
+        open={showCreateStory}
+        onOpenChange={setShowCreateStory}
+        onStoryCreated={fetchVoiceMemos}
       />
     </div>
   );

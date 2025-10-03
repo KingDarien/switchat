@@ -37,9 +37,6 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
 
     setLoading(true);
     try {
-      // Proceed using authenticated user from context
-      console.log('Creating room with authenticated user:', user.id);
-
       const { data, error } = await supabase
         .from('audio_rooms')
         .insert({
@@ -66,18 +63,10 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
       setIsPrivate(false);
       setMaxParticipants(50);
       onOpenChange(false);
-      
-      // Small delay to ensure DB replication before triggering refresh
-      setTimeout(() => {
-        onRoomCreated();
-      }, 100);
+      onRoomCreated();
     } catch (error: any) {
       console.error('Error creating room:', error);
-      if (error.message?.includes('Failed to fetch')) {
-        toast.error('Connection error. Please check your internet and try again.');
-      } else {
-        toast.error('Failed to create room. Please try again.');
-      }
+      toast.error('Failed to create room. Please try again.');
     } finally {
       setLoading(false);
     }
