@@ -798,7 +798,7 @@ const AudioFeed = () => {
         {/* Left Panel - Rooms & Memos */}
         <div className="w-full lg:w-80 border-r bg-background/50 flex flex-col overflow-hidden">
           {/* Live Rooms */}
-          <div className="p-4">
+          <div className="p-4 bg-accent/30">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold flex items-center gap-2">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
