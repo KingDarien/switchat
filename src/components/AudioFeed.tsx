@@ -77,6 +77,27 @@ const AudioFeed = () => {
   useEffect(() => {
     fetchAudioRooms();
     fetchVoiceMemos();
+
+    // Subscribe to real-time updates for new audio rooms
+    const roomsChannel = supabase
+      .channel('audio-rooms-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'audio_rooms'
+        },
+        (payload) => {
+          console.log('New room created:', payload.new);
+          setAudioRooms(prev => [payload.new as AudioRoom, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(roomsChannel);
+    };
   }, []);
 
   const fetchAudioRooms = async () => {
@@ -85,7 +106,7 @@ const AudioFeed = () => {
         .from('audio_rooms')
         .select('*')
         .eq('is_active', true)
-        .order('current_participants', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setAudioRooms(data || []);

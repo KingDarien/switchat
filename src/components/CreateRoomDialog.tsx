@@ -75,7 +75,11 @@ const CreateRoomDialog = ({ open, onOpenChange, onRoomCreated }: CreateRoomDialo
       setIsPrivate(false);
       setMaxParticipants(50);
       onOpenChange(false);
-      onRoomCreated();
+      
+      // Small delay to ensure DB replication before triggering refresh
+      setTimeout(() => {
+        onRoomCreated();
+      }, 100);
     } catch (error: any) {
       console.error('Error creating room:', error);
       if (error.message?.includes('Failed to fetch')) {
