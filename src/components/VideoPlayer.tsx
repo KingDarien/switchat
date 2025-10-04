@@ -1,14 +1,21 @@
-import { useRef, useEffect, useState } from 'react';
-import { Play, Pause, Volume2, VolumeX, Heart, MessageCircle, Share } from 'lucide-react';
+import { useRef, useEffect, useState, lazy, Suspense } from 'react';
+import { Play, Volume2, VolumeX, Heart, MessageCircle, Share, Bookmark, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import VideoComments from './VideoComments';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
+import { useVideoPlayer } from '@/hooks/useVideoPlayer';
 import UserDisplayName from './UserDisplayName';
-import AnimatedReaction from './AnimatedReaction';
+import VideoStats from './VideoStats';
+import DoubleTapLike from './DoubleTapLike';
+import VideoDescription from './VideoDescription';
+
+// Lazy load comments for better performance
+const VideoComments = lazy(() => import('./VideoComments'));
+const AnimatedReaction = lazy(() => import('./AnimatedReaction'));
 
 interface Profile {
   user_id: string;
@@ -38,77 +45,69 @@ interface VideoPlayerProps {
 }
 
 const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: VideoPlayerProps) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
-  const [progress, setProgress] = useState(0);
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const { targetRef, isIntersecting } = useIntersectionObserver({ threshold: 0.7 });
+  
+  const {
+    videoRef,
+    isPlaying,
+    isMuted,
+    progress,
+    isBuffering,
+    hasError,
+    togglePlayPause,
+    toggleMute,
+    retry
+  } = useVideoPlayer({
+    postId: post.id,
+    postUserId: post.user_id,
+    isActive,
+    isIntersecting
+  });
+
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [isSaved, setIsSaved] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [profileData, setProfileData] = useState(post.profiles);
   const [showReactionAnimation, setShowReactionAnimation] = useState(false);
   const [animatedEmoji, setAnimatedEmoji] = useState('');
   const startY = useRef(0);
   const isDragging = useRef(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
 
+  // Fetch likes and saved status
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    if (!isActive || !user) return;
 
-    if (isActive) {
-      video.currentTime = 0;
-      video.play().then(() => setIsPlaying(true)).catch(console.error);
-    } else {
-      video.pause();
-      setIsPlaying(false);
-    }
-  }, [isActive]);
+    const fetchInteractions = async () => {
+      try {
+        // Fetch likes
+        const { data: likesData } = await supabase
+          .from('likes')
+          .select('*')
+          .eq('post_id', post.id);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+        setLikeCount(likesData?.length || 0);
+        const userLike = likesData?.find(like => like.user_id === user.id);
+        setIsLiked(!!userLike);
 
-    const updateProgress = () => {
-      if (video.duration) {
-        setProgress((video.currentTime / video.duration) * 100);
+        // Fetch saved status
+        const { data: savedData } = await supabase
+          .from('saved_videos')
+          .select('*')
+          .eq('post_id', post.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        setIsSaved(!!savedData);
+      } catch (error) {
+        console.error('Error fetching interactions:', error);
       }
     };
 
-    const handleEnded = () => {
-      video.currentTime = 0;
-      video.play();
-    };
-
-    video.addEventListener('timeupdate', updateProgress);
-    video.addEventListener('ended', handleEnded);
-
-    return () => {
-      video.removeEventListener('timeupdate', updateProgress);
-      video.removeEventListener('ended', handleEnded);
-    };
-  }, []);
-
-  const togglePlayPause = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isPlaying) {
-      video.pause();
-      setIsPlaying(false);
-    } else {
-      video.play().then(() => setIsPlaying(true)).catch(console.error);
-    }
-  };
-
-  const toggleMute = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.muted = !video.muted;
-    setIsMuted(video.muted);
-  };
+    fetchInteractions();
+  }, [isActive, post.id, user]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     startY.current = e.touches[0].clientY;
@@ -164,19 +163,16 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
 
     try {
       if (isLiked) {
-        // Remove like
-        const { error } = await supabase
+        await supabase
           .from('likes')
           .delete()
           .eq('post_id', post.id)
           .eq('user_id', user.id);
 
-        if (error) throw error;
         setIsLiked(false);
         setLikeCount(prev => prev - 1);
       } else {
-        // Add like
-        const { error } = await supabase
+        await supabase
           .from('likes')
           .insert({
             post_id: post.id,
@@ -184,15 +180,12 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
             emoji: '❤️'
           });
 
-        if (error) throw error;
         setIsLiked(true);
         setLikeCount(prev => prev + 1);
-        
-        // Show animation
         setAnimatedEmoji('❤️');
         setShowReactionAnimation(true);
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update like",
@@ -201,41 +194,70 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
     }
   };
 
+  const handleDoubleTapLike = () => {
+    if (!isLiked) {
+      handleLike();
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+
+    try {
+      if (isSaved) {
+        await supabase
+          .from('saved_videos')
+          .delete()
+          .eq('post_id', post.id)
+          .eq('user_id', user.id);
+
+        setIsSaved(false);
+        toast({ title: "Removed from saved videos" });
+      } else {
+        await supabase
+          .from('saved_videos')
+          .insert({
+            post_id: post.id,
+            user_id: user.id
+          });
+
+        setIsSaved(true);
+        toast({ title: "Saved to your collection" });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save video",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
+    try {
+      if (navigator.share) {
         await navigator.share({
           title: `Video by ${post.profiles.display_name || post.profiles.username}`,
           text: post.content,
           url: window.location.href,
         });
-      } catch (error) {
-        console.error('Error sharing:', error);
-      }
-    } else {
-      // Fallback to clipboard
-      try {
+      } else {
         await navigator.clipboard.writeText(window.location.href);
         toast({
           title: "Link copied!",
           description: "Video link copied to clipboard",
         });
-      } catch (error) {
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
         toast({
           title: "Error",
-          description: "Failed to copy link",
+          description: "Failed to share video",
           variant: "destructive",
         });
       }
     }
   };
-
-
-  useEffect(() => {
-    if (isActive) {
-      fetchLikes();
-    }
-  }, [isActive, post.id]);
 
   // Listen for real-time profile updates
   useEffect(() => {
@@ -264,52 +286,87 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
 
   if (!post.video_url) return null;
 
-  return (
-    <div className="relative h-full w-full bg-black flex items-center justify-center">
-      <video
-        ref={videoRef}
-        src={post.video_url}
-        muted={isMuted}
-        loop
-        playsInline
-        className="h-full w-full object-cover"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onClick={togglePlayPause}
-      />
+  // Format duration
+  const formatDuration = (seconds: number | null): string => {
+    if (!seconds) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
-      {/* Play/Pause Overlay */}
-      {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+  return (
+    <div ref={targetRef} className="relative h-full w-full bg-black flex items-center justify-center">
+      <DoubleTapLike onDoubleTap={handleDoubleTapLike}>
+        <video
+          ref={videoRef}
+          src={post.video_url}
+          muted={isMuted}
+          loop
+          playsInline
+          className="h-full w-full object-cover"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        />
+      </DoubleTapLike>
+
+      {/* Buffering Overlay */}
+      {isBuffering && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <Loader2 className="w-12 h-12 text-white animate-spin" />
+        </div>
+      )}
+
+      {/* Error Overlay */}
+      {hasError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm gap-4">
+          <p className="text-white text-lg">Failed to load video</p>
           <Button
-            variant="ghost"
-            size="lg"
-            onClick={togglePlayPause}
-            className="text-white hover:bg-white/20 p-4 rounded-full"
+            onClick={retry}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            <Play className="w-12 h-12" />
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Tap to retry
           </Button>
         </div>
       )}
 
+      {/* Duration Badge */}
+      {post.duration && (
+        <div className="absolute top-4 right-4 px-2 py-1 bg-black/70 backdrop-blur-sm rounded text-white text-xs font-medium">
+          {formatDuration(post.duration)}
+        </div>
+      )}
+
+      {/* Play/Pause Tap Indicator */}
+      {!isPlaying && !hasError && !isBuffering && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="bg-black/40 backdrop-blur-sm p-4 rounded-full animate-pulse">
+            <Play className="w-12 h-12 text-white" />
+          </div>
+        </div>
+      )}
+
+      {/* Gradient Overlay for Readability */}
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
+
       {/* Progress Bar */}
-      <div className="absolute bottom-20 left-4 right-20 h-1 bg-white/30 rounded-full">
+      <div className="absolute bottom-20 left-4 right-20 h-1 bg-white/20 rounded-full overflow-hidden">
         <div 
-          className="h-full bg-primary rounded-full transition-all duration-100"
+          className="h-full bg-white rounded-full transition-all duration-100 shadow-lg"
           style={{ width: `${progress}%` }}
         />
       </div>
 
       {/* User Info */}
-      <div className="absolute bottom-24 left-4 flex items-center gap-3">
-        <Avatar className="w-12 h-12 border-2 border-white">
+      <div className="absolute bottom-24 left-4 right-20 flex items-start gap-3">
+        <Avatar className="w-12 h-12 border-2 border-white shadow-lg">
           <AvatarImage src={profileData?.avatar_url || ''} />
           <AvatarFallback className="bg-muted">
             {(profileData?.display_name || profileData?.username || 'U')[0]}
           </AvatarFallback>
         </Avatar>
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1">
           <UserDisplayName
             displayName={profileData?.display_name || 'Unknown User'}
             username={profileData?.username || 'user'}
@@ -320,54 +377,67 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
             size="sm"
             showRank={false}
           />
-          <p className="text-xs text-white/80 max-w-xs truncate mt-1">
-            {post.content}
-          </p>
+          <VideoDescription content={post.content} />
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="absolute right-4 bottom-20 flex flex-col gap-4">
+      {/* Modern Controls with Stats */}
+      <div className="absolute right-4 bottom-20 flex flex-col gap-3">
+        {/* Mute Button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={toggleMute}
-          className="text-white hover:bg-white/20 p-3 rounded-full"
+          className="text-white hover:bg-white/20 backdrop-blur-sm p-3 rounded-full transition-all hover:scale-110"
         >
           {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
         </Button>
         
-        <div className="flex flex-col items-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLike}
-            className={cn(
-              "text-white hover:bg-white/20 p-3 rounded-full transition-colors",
-              isLiked && "text-red-500"
-            )}
-          >
-            <Heart className={cn("w-6 h-6", isLiked && "fill-current")} />
-          </Button>
-          {likeCount > 0 && (
-            <span className="text-xs text-white mt-1">{likeCount}</span>
-          )}
-        </div>
+        {/* Stats */}
+        <VideoStats postId={post.id} likeCount={likeCount} />
         
+        {/* Like Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleLike}
+          className={cn(
+            "text-white hover:bg-white/20 backdrop-blur-sm p-3 rounded-full transition-all hover:scale-110",
+            isLiked && "text-red-500"
+          )}
+        >
+          <Heart className={cn("w-7 h-7", isLiked && "fill-current animate-pulse")} />
+        </Button>
+        
+        {/* Comments Button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShowComments(true)}
-          className="text-white hover:bg-white/20 p-3 rounded-full"
+          className="text-white hover:bg-white/20 backdrop-blur-sm p-3 rounded-full transition-all hover:scale-110"
         >
           <MessageCircle className="w-6 h-6" />
         </Button>
         
+        {/* Save Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleSave}
+          className={cn(
+            "text-white hover:bg-white/20 backdrop-blur-sm p-3 rounded-full transition-all hover:scale-110",
+            isSaved && "text-accent"
+          )}
+        >
+          <Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} />
+        </Button>
+        
+        {/* Share Button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={handleShare}
-          className="text-white hover:bg-white/20 p-3 rounded-full"
+          className="text-white hover:bg-white/20 backdrop-blur-sm p-3 rounded-full transition-all hover:scale-110"
         >
           <Share className="w-6 h-6" />
         </Button>
@@ -385,20 +455,28 @@ const VideoPlayer = ({ post, isActive, onScroll, canScrollUp, canScrollDown }: V
         </div>
       )}
 
-      {/* Comments Modal */}
-      <VideoComments
-        postId={post.id}
-        postAuthorId={post.user_id}
-        isOpen={showComments}
-        onClose={() => setShowComments(false)}
-      />
+      {/* Comments Modal - Lazy Loaded */}
+      {showComments && (
+        <Suspense fallback={<div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-white" /></div>}>
+          <VideoComments
+            postId={post.id}
+            postAuthorId={post.user_id}
+            isOpen={showComments}
+            onClose={() => setShowComments(false)}
+          />
+        </Suspense>
+      )}
 
-      {/* Reaction Animation */}
-      <AnimatedReaction
-        emoji={animatedEmoji}
-        show={showReactionAnimation}
-        onComplete={() => setShowReactionAnimation(false)}
-      />
+      {/* Reaction Animation - Lazy Loaded */}
+      {showReactionAnimation && (
+        <Suspense fallback={null}>
+          <AnimatedReaction
+            emoji={animatedEmoji}
+            show={showReactionAnimation}
+            onComplete={() => setShowReactionAnimation(false)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

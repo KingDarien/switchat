@@ -1003,6 +1003,35 @@ export type Database = {
           },
         ]
       }
+      saved_videos: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_videos_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_blocks: {
         Row: {
           blocked_id: string
@@ -1323,6 +1352,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      video_views: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          id: string
+          post_id: string
+          user_id: string | null
+          viewed_at: string | null
+          watch_duration: number | null
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string | null
+          id?: string
+          post_id: string
+          user_id?: string | null
+          viewed_at?: string | null
+          watch_duration?: number | null
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string | null
+          viewed_at?: string | null
+          watch_duration?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       voice_memos: {
         Row: {
