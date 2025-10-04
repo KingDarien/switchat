@@ -2,13 +2,14 @@
 import { useState, useEffect, useRef } from 'react';
 import CreateRoomDialog from './CreateRoomDialog';
 import VoiceStoryDialog from './VoiceStoryDialog';
+import { RoomChat } from './RoomChat';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Mic, MicOff, Play, Pause, Volume2, Users, Plus, Hand, MoreVertical, Volume, Trash2, UserCog, ThumbsUp, ThumbsDown, Share2 } from 'lucide-react';
+import { Mic, MicOff, Play, Pause, Volume2, Users, Plus, Hand, MoreVertical, Volume, Trash2, UserCog, ThumbsUp, ThumbsDown, Share2, MessageCircle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
@@ -94,6 +95,8 @@ const AudioFeed = () => {
   const [showScheduleStoryDialog, setShowScheduleStoryDialog] = useState(false);
   const [selectedStory, setSelectedStory] = useState<VoiceMemo | null>(null);
   const [userReactions, setUserReactions] = useState<Record<string, 'like' | 'dislike'>>({});
+  const [showRoomChat, setShowRoomChat] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   // Audio playback for voice memos
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -1446,6 +1449,24 @@ const AudioFeed = () => {
                     <span className="text-xs text-muted-foreground">Volume</span>
                   </div>
 
+                  {/* Chat Toggle */}
+                  <div className="flex flex-col items-center gap-1">
+                    <Button 
+                      size="lg" 
+                      variant={showRoomChat ? "default" : "outline"}
+                      className="rounded-full w-14 h-14 shadow-lg relative"
+                      onClick={() => setShowRoomChat(!showRoomChat)}
+                    >
+                      <MessageCircle className="h-6 w-6" />
+                      {unreadChatCount > 0 && !showRoomChat && (
+                        <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                          {unreadChatCount > 9 ? '9+' : unreadChatCount}
+                        </Badge>
+                      )}
+                    </Button>
+                    <span className="text-xs text-muted-foreground">Chat</span>
+                  </div>
+
                   {/* Enable Audio Button */}
                   {needsAudioStart && (
                     <Button
@@ -1690,6 +1711,17 @@ const AudioFeed = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Room Chat */}
+      {isInRoom && selectedRoom && (
+        <RoomChat
+          roomId={selectedRoom}
+          isVisible={showRoomChat}
+          isHost={audioRooms.find(r => r.id === selectedRoom)?.host_id === user?.id}
+          onClose={() => setShowRoomChat(false)}
+          onUnreadChange={setUnreadChatCount}
+        />
+      )}
     </div>
   );
 };
