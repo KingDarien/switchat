@@ -28,7 +28,7 @@ const VideoFeed = () => {
 
   if (posts.length === 0) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-background p-8 text-center animate-fade-in">
+      <div className="h-screen flex flex-col items-center justify-center bg-feed-video p-8 text-center animate-fade-in">
         <div className="rounded-full bg-muted/50 p-6 mb-4">
           <span className="text-5xl">🎥</span>
         </div>
@@ -47,7 +47,7 @@ const VideoFeed = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-background relative snap-y snap-mandatory">
+    <div className="h-screen overflow-hidden bg-feed-video relative snap-y snap-mandatory">
       <div 
         className="flex flex-col transition-transform duration-300 ease-out"
         style={{

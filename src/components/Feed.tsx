@@ -248,7 +248,8 @@ const Feed = ({
 
   return (
     <PullToRefresh onRefresh={handleRefresh}>
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="min-h-screen bg-feed-social">
+      <div className="grid gap-6 lg:grid-cols-3 p-4">
       <div className="lg:col-span-2 space-y-6">
         {feedType !== 'news' && <CreatePost onPostCreated={fetchPosts} />}
         
@@ -297,7 +298,8 @@ const Feed = ({
       <div className="hidden lg:block">
         <UserSearch />
       </div>
-    </div>
+      </div>
+      </div>
     </PullToRefresh>
   );
 };

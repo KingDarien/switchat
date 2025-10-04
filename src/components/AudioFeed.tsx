@@ -989,7 +989,7 @@ const AudioFeed = () => {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 overflow-hidden">
+    <div className="h-screen bg-feed-audio overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b bg-background/95 backdrop-blur-md shadow-sm">
         <div className="flex items-center justify-between max-w-7xl mx-auto">

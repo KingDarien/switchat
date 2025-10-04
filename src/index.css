@@ -59,6 +59,11 @@ All colors MUST be HSL.
     
     /* Special Colors */
     --mint-teal: 160 60% 85%;
+    
+    /* Feed Background Colors */
+    --feed-audio: 280 60% 85%;
+    --feed-social: 220 40% 40%;
+    --feed-video: 160 60% 85%;
 
     --radius: 0.75rem;
     
@@ -142,6 +147,11 @@ All colors MUST be HSL.
     
     /* Special Colors Dark Mode */
     --mint-teal: 160 40% 25%;
+    
+    /* Feed Background Colors Dark Mode */
+    --feed-audio: 280 50% 20%;
+    --feed-social: 220 30% 15%;
+    --feed-video: 160 40% 20%;
     
     /* Modern Shadows & Depth Dark Mode */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.5);

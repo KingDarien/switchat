@@ -70,6 +70,11 @@ export default {
 					state: 'hsl(var(--state-news))',
 					city: 'hsl(var(--city-news))'
 				},
+				feed: {
+					audio: 'hsl(var(--feed-audio))',
+					social: 'hsl(var(--feed-social))',
+					video: 'hsl(var(--feed-video))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
